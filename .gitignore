@@ -1,0 +1,39 @@
+# 로그 파일 (Logs)
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 의존성 디렉토리 (Dependencies)
+node_modules
+.pnpm-store
+
+# 빌드 결과물 (Build)
+dist
+dist-ssr
+*.local
+
+# 에디터 및 OS 설정 파일 (Editor & OS Directories)
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 환경 변수 파일 (Environment Variables)
+.env
+.env.*
+!.env.example
+
+# 테스트 커버리지 (Test Coverage)
+coverage
+
+# Vite 임시 파일
+node_modules/.vite/
