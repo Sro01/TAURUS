@@ -37,3 +37,8 @@ coverage
 
 # Vite 임시 파일
 node_modules/.vite/
+
+# Agent
+docs
+/generated/prisma
+

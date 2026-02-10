@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { TeamModule } from './team/team.module';
+import { WeekModule } from './week/week.module';
+import { ReservationModule } from './reservation/reservation.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
-  imports: [],
+  imports: [AuthModule, TeamModule, WeekModule, ReservationModule, AdminModule],
   controllers: [AppController],
   providers: [AppService],
 })
