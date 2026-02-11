@@ -23,6 +23,19 @@ async function bootstrap() {
     .setDescription('Taurus 웹사이트 API 문서')
     .setVersion('1.0')
     .addTag('Auth', '인증 관련 API')
+    .addTag('Team', '팀 관련 API')
+    // JWT 토큰 인증 설정
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'access-token', // @ApiBearerAuth('access-token')과 일치시켜야 함 (기본값은 default)
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
