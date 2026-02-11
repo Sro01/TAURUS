@@ -1,6 +1,7 @@
 import { Controller, Get, Body, Query, UseGuards, Request, Patch, Delete } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UpdateNameDto } from './dto/update-name.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
@@ -26,11 +27,22 @@ export class TeamController {
         return this.teamService.findOne(req.user.id);
     }
 
+    @Patch('me/name')
+    @UseGuards(AuthGuard('jwt'))
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: '팀명 변경' })
+    @ApiResponse({ status: 200, description: '변경 성공' })
+    @ApiResponse({ status: 409, description: '이미 존재하는 팀 이름' })
+    async updateName(@Request() req: any, @Body() dto: UpdateNameDto) {
+        return this.teamService.updateName(req.user.id, dto);
+    }
+
     @Patch('me/password')
     @UseGuards(AuthGuard('jwt'))
     @ApiBearerAuth('access-token')
     @ApiOperation({ summary: '비밀번호 변경' })
     @ApiResponse({ status: 200, description: '변경 성공' })
+    @ApiResponse({ status: 401, description: '현재 비밀번호 불일치' })
     async updatePassword(@Request() req: any, @Body() dto: UpdatePasswordDto) {
         return this.teamService.updatePassword(req.user.id, dto);
     }

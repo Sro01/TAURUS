@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, MinLength, IsOptional, Matches } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -16,8 +16,4 @@ export class RegisterDto {
     })
     password!: string;
 
-    @ApiProperty({ description: '팀 설명 (선택)', example: 'Whatever / Champagne Supernova', required: false })
-    @IsOptional()
-    @IsString()
-    description?: string;
 }

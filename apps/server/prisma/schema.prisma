@@ -48,8 +48,6 @@ model Team {
   id          String   @id @default(uuid())
   name        String   @unique // 팀명 (로그인 ID 역할)
   password    String   // 해시된 비밀번호
-  generation  Int?     // 기수 (선택)
-  description String?  // 팀 설명 (선택)
   role        Role     @default(USER)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
