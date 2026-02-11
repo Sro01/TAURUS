@@ -12,27 +12,32 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    // 예상치 못한 에러인 경우 콘솔에 상세 로그 출력 (디버깅용)
+    if (!(exception instanceof HttpException)) {
+      console.error('[UnhandledException]', exception);
+    }
+
     const exceptionResponse =
       exception instanceof HttpException
         ? exception.getResponse()
         : { message: 'Internal Server Error' };
-    
+
     // NestJS 기본 에러 메시지 처리 (string 또는 object)
     let message = '오류가 발생했습니다.';
     let code = 'ERROR';
 
     if (typeof exceptionResponse === 'string') {
-        message = exceptionResponse;
-        code = `HTTP_${status}`;
+      message = exceptionResponse;
+      code = `HTTP_${status}`;
     } else if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
-        const body = exceptionResponse as any;
-        message = body.message || message;
-        code = body.error || `HTTP_${status}`;
-        
-        // validation pipe 에러 처리 (배열인 경우)
-        if (Array.isArray(message)) {
-            message = message[0];
-        }
+      const body = exceptionResponse as any;
+      message = body.message || message;
+      code = body.error || `HTTP_${status}`;
+
+      // validation pipe 에러 처리 (배열인 경우)
+      if (Array.isArray(message)) {
+        message = message[0];
+      }
     }
 
     const errorResponse: CommonResponseDto<null> = {

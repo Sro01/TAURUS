@@ -1,5 +1,7 @@
 import { Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
+import { ReservationService } from '../reservation/reservation.service';
 import { WeekResponseDto } from './dto/week-response.dto';
 import { WeekStatus } from '@prisma/client';
 import dayjs from 'dayjs';
@@ -9,11 +11,50 @@ dayjs.extend(isoWeek);
 
 @Injectable()
 export class WeekService implements OnModuleInit {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private reservationService: ReservationService,
+    ) { }
 
     async onModuleInit() {
-        // 앱 시작 시 올해/내년 주차 데이터가 없으면 생성
+        // 앱 시작 시 올해 주차 데이터가 없으면 생성
         await this.ensureWeeksExist();
+        // 현재 시각 기준으로 주차 상태 동기화 (지난 주차 → CLOSED, 현재 주차 → OPEN)
+        await this.syncWeekStatuses();
+    }
+
+    // 현재 시각 기준으로 주차 상태 자동 동기화
+    private async syncWeekStatuses() {
+        const now = dayjs();
+        const isSundayAfter18 = now.day() === 0 && now.hour() >= 18;
+
+        // 메인 주차의 시작일 계산
+        let mainWeekStart = now.startOf('isoWeek');
+        if (isSundayAfter18) {
+            mainWeekStart = mainWeekStart.add(1, 'week');
+        }
+
+        // 1. 메인 주차 이전의 모든 주차 → CLOSED
+        const closedResult = await this.prisma.week.updateMany({
+            where: {
+                startDate: { lt: mainWeekStart.toDate() },
+                status: { not: WeekStatus.CLOSED },
+            },
+            data: { status: WeekStatus.CLOSED },
+        });
+
+        // 2. 현재 메인 주차 → OPEN
+        const openResult = await this.prisma.week.updateMany({
+            where: {
+                startDate: mainWeekStart.toDate(),
+                status: { not: WeekStatus.OPEN },
+            },
+            data: { status: WeekStatus.OPEN },
+        });
+
+        if (closedResult.count > 0 || openResult.count > 0) {
+            console.log(`Week statuses synced: ${closedResult.count} CLOSED, ${openResult.count} OPEN`);
+        }
     }
 
     // 주차 데이터 생성 (현재 연도 내)
@@ -103,10 +144,19 @@ export class WeekService implements OnModuleInit {
         return weeks.map(w => this.toDto(w));
     }
 
-    // 주차 전환 (일요일 18:00 로직 - 테스트용)
-    // 실제로는 스케줄러가 호출해야 함
+    // ──────────────────────────────────────
+    // Cron: 매주 일요일 18:00 자동 주차 전환
+    // ──────────────────────────────────────
+    @Cron('0 18 * * 0')
+    async handleWeekRotation() {
+        console.log('[Cron] 주차 자동 전환 시작...');
+        const result = await this.rotation();
+        console.log(`[Cron] 주차 전환 완료: ${result.message}`);
+    }
+
+    // 주차 전환 (Cron 또는 수동 호출)
     async rotation() {
-        const { main } = await this.getMainWeeks();
+        const { main, next } = await this.getMainWeeks();
 
         // 1. 이전 주차들을 CLOSED로 변경
         await this.prisma.week.updateMany({
@@ -123,24 +173,21 @@ export class WeekService implements OnModuleInit {
             data: { status: WeekStatus.OPEN },
         });
 
-        // TODO: ReservationService.processRotation() 호출 필요
-        // PENDING 예약 집계 (1팀→CONFIRMED, 2팀+→VOID)
+        // 3. PENDING 예약 집계 (1팀→CONFIRMED, 2팀+→VOID)
+        const rotationResult = await this.reservationService.processRotation(main.id);
+        console.log(`[Rotation] PENDING 집계: ${rotationResult.confirmed} 확정, ${rotationResult.voided} 폭파`);
 
-        return { message: `Week ${main.weekNumber} is now OPEN. Previous weeks are CLOSED.` };
+        return {
+            message: `Week ${main.weekNumber} is now OPEN. Previous weeks are CLOSED. (${rotationResult.confirmed} confirmed, ${rotationResult.voided} voided)`,
+        };
     }
     private toDto(week: any): WeekResponseDto {
-        const dto = new WeekResponseDto(week);
-
         // "N월 N주차" 표기 계산
         // ISO 8601 기준: 그 주의 목요일이 속한 달 + 그 달의 몇 번째 주인지
         const thursday = dayjs(week.startDate).add(3, 'day');
         const month = thursday.month() + 1;
 
         const firstDayOfMonth = thursday.startOf('month');
-
-        // ISO 8601: "그 주의 과반(4일 이상)이 해당 월에 포함되면 그 달의 주"
-        // => "그 주의 목요일이 해당 월에 속하면 그 달의 주"
-        // => 해당 월의 첫 번째 목요일이 포함된 주 = 1주차
 
         // 해당 월의 첫 번째 목요일 찾기
         let firstThursday = firstDayOfMonth;
@@ -150,8 +197,8 @@ export class WeekService implements OnModuleInit {
 
         // 현재 주의 목요일과 첫 목요일의 주 차이 = N주차
         const weekOfMonth = Math.floor(thursday.diff(firstThursday, 'day') / 7) + 1;
+        const displayName = `${month}월 ${weekOfMonth}주차`;
 
-        dto.displayName = `${month}월 ${weekOfMonth}주차`;
-        return dto;
+        return new WeekResponseDto(week, displayName);
     }
 }
