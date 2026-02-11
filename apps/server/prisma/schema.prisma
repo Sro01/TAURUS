@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --------------------------------------
+// Enums
+// --------------------------------------
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum WeekStatus {
+  OPEN     // 바로 예약 가능 (현재 주차)
+  CLOSED   // 예약 마감 (과거 주차)
+  UPCOMING // 미리 예약 기간 (다음 주차)
+}
+
+enum ReservationStatus {
+  PENDING    // 예약 대기 (미리 예약)
+  CONFIRMED  // 예약 확정
+  VOID       // 예약 취소/폭파 (시스템)
+  CANCELLED  // 예약 취소 (사용자)
+}
+
+enum ReservationType {
+  INSTANT // 바로 예약
+  PRE     // 미리 예약
+  ADMIN   // 관리자 우선 예약
+}
+
+// --------------------------------------
+// Models
+// --------------------------------------
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String   @unique // 팀명 (로그인 ID 역할)
+  password    String   // 해시된 비밀번호
+  generation  Int?     // 기수 (선택)
+  description String?  // 팀 설명 (선택)
+  role        Role     @default(USER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reservations Reservation[]
+
+  @@map("teams")
+}
+
+model Week {
+  id         Int        @id @default(autoincrement())
+  startDate  DateTime   // 해당 주차 월요일 00:00
+  endDate    DateTime   // 해당 주차 일요일 23:59
+  status     WeekStatus @default(UPCOMING)
+  weekNumber Int        // 연도 내 주차 번호 (1~52)
+
+  reservations Reservation[]
+
+  @@index([startDate, endDate])
+  @@map("weeks")
+}
+
+model Reservation {
+  id        String            @id @default(uuid())
+  startTime DateTime          // 슬롯 시작 시간
+  endTime   DateTime          // 슬롯 종료 시간 (시작 + 50분)
+  status    ReservationStatus @default(PENDING)
+  type      ReservationType   @default(INSTANT)
+
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  weekId Int
+  week   Week @relation(fields: [weekId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startTime])
+  @@index([teamId])
+  @@index([weekId])
+  @@map("reservations")
+}
+
+model SystemConfig {
+  key   String @id
+  value String
+
+  @@map("system_configs")
+}

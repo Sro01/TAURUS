@@ -9,13 +9,7 @@
     "build:client": "npm run build -w apps/client",
     "start:server": "npm run start:dev -w apps/server"
   },
-  "devDependencies": {
-    "prettier": "^3.5.2"
-  },
   "engines": {
     "node": ">=20"
-  },
-  "dependencies": {
-    "prisma": "^7.3.0"
   }
 }
