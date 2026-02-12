@@ -4,6 +4,22 @@
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
-  }
+    "^.+\\.(t|j)s$": ["ts-jest", {
+      "tsconfig": {
+        "esModuleInterop": true
+      }
+    }]
+  },
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/../src/$1"
+  },
+  "reporters": [
+    "default",
+    ["jest-html-reporters", {
+      "publicPath": "./test/reports",
+      "filename": "e2e-report.html",
+      "pageTitle": "Taurus E2E Test Report"
+    }]
+  ],
+  "verbose": true
 }
