@@ -24,6 +24,9 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('Auth', '인증 관련 API')
     .addTag('Team', '팀 관련 API')
+    .addTag('Week', '주차 관련 API')
+    .addTag('Reservation', '예약 관련 API')
+    .addTag('Admin', '관리자 관련 API')
     // JWT 토큰 인증 설정
     .addBearerAuth(
       {

@@ -25,8 +25,8 @@ export class ReservationResponseDto {
     @ApiProperty({ enum: ReservationType })
     type!: ReservationType;
 
-    @ApiProperty()
-    teamId!: string;
+    @ApiProperty({ nullable: true })
+    teamId!: string | null;
 
     @ApiProperty({ description: '팀명 (바로 예약: 공개 / 미리 예약: null)', nullable: true })
     teamName!: string | null;
@@ -37,14 +37,14 @@ export class ReservationResponseDto {
     @ApiProperty({ description: '생성 시각 (KST)' })
     createdAt!: string;
 
-    constructor(reservation: Reservation & { team?: { name: string } }, showTeamName: boolean) {
+    constructor(reservation: Reservation & { team?: { name: string } | null }, showTeamName: boolean) {
         this.id = reservation.id;
         this.startTime = dayjs(reservation.startTime).tz(KST).format();
         this.endTime = dayjs(reservation.endTime).tz(KST).format();
         this.status = reservation.status;
         this.type = reservation.type;
         this.teamId = reservation.teamId;
-        this.teamName = showTeamName ? (reservation.team?.name ?? null) : null;
+        this.teamName = showTeamName && reservation.team ? reservation.team.name : null;
         this.weekId = reservation.weekId;
         this.createdAt = dayjs(reservation.createdAt).tz(KST).format();
     }
