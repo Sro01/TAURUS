@@ -22,10 +22,10 @@ export class AdminService {
     ) { }
 
     // ──────────────────────────────────────
-    // 관리자 로그인
-    // 마스터 패스워드 검증 후 JWT 발급
+    // 관리자 인증 (verify)
+    // 마스터 패스워드 검증 후 JWT 발급 (1시간)
     // ──────────────────────────────────────
-    async login(dto: AdminLoginDto) {
+    async verify(dto: AdminLoginDto) {
         const masterPassword = process.env.ADMIN_PASSWORD;
         if (!masterPassword) {
             throw new UnauthorizedException('서버에 관리자 비밀번호가 설정되지 않았습니다.');
@@ -35,10 +35,10 @@ export class AdminService {
             throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
         }
 
-        // 관리자 전용 토큰 발급 (role: ADMIN)
+        // 관리자 전용 토큰 발급 (role: ADMIN, 1시간)
         const payload = { sub: 'admin', username: 'admin', role: 'ADMIN' };
         return {
-            access_token: this.jwtService.sign(payload),
+            access_token: this.jwtService.sign(payload, { expiresIn: '1h' }),
         };
     }
 

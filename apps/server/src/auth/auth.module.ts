@@ -10,8 +10,8 @@ import { PrismaModule } from '../prisma/prisma.module';
   imports: [
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secretKey',
-      signOptions: { expiresIn: '1d' },
+      secret: process.env.JWT_SECRET,
+      // 만료 시간은 각 토큰 발급 시 개별 지정 (팀: 15m, 관리자: 1h)
     }),
     PrismaModule,
   ],

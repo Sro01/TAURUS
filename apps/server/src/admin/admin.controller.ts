@@ -12,11 +12,11 @@ import { AdminGuard } from './guards/admin.guard';
 export class AdminController {
     constructor(private readonly adminService: AdminService) { }
 
-    @Post('login')
-    @ApiOperation({ summary: '관리자 로그인 (마스터 패스워드)' })
+    @Post('verify')
+    @ApiOperation({ summary: '관리자 인증 (마스터 패스워드 → 세션 토큰 발급, 1시간)' })
     @ApiResponse({ status: 200, description: 'JWT 토큰 발급' })
-    async login(@Body() dto: AdminLoginDto) {
-        return this.adminService.login(dto);
+    async verify(@Body() dto: AdminLoginDto) {
+        return this.adminService.verify(dto);
     }
 
     // 이하 모든 요청은 관리자 권한 필요
