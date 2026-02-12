@@ -38,6 +38,12 @@ export class TeamService {
 
     // 팀명 변경
     async updateName(id: string, dto: UpdateNameDto): Promise<{ message: string }> {
+        // 팀 존재 여부 확인 (관리자 토큰 등 잘못된 ID 접근 방어)
+        const team = await this.prisma.team.findUnique({ where: { id } });
+        if (!team) {
+            throw new NotFoundException('팀을 찾을 수 없습니다.');
+        }
+
         // 중복 확인
         const existing = await this.prisma.team.findUnique({
             where: { name: dto.name },

@@ -4,10 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ReservationService } from '../reservation/reservation.service';
 import { WeekResponseDto } from './dto/week-response.dto';
 import { WeekStatus } from '@prisma/client';
-import dayjs from 'dayjs';
-import isoWeek from 'dayjs/plugin/isoWeek';
-
-dayjs.extend(isoWeek);
+import dayjs from '../common/utils/dayjs';
 
 @Injectable()
 export class WeekService implements OnModuleInit {

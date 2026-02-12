@@ -4,6 +4,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { JwtUser } from '../auth/types';
 
 @ApiTags('Team')
 @Controller('teams')
@@ -23,7 +24,7 @@ export class TeamController {
     @ApiBearerAuth('access-token')
     @ApiOperation({ summary: '내 팀 정보 조회' })
     @ApiResponse({ status: 200, description: '조회 성공' })
-    async findMe(@Request() req: any) {
+    async findMe(@Request() req: { user: JwtUser }) {
         return this.teamService.findOne(req.user.id);
     }
 
@@ -33,7 +34,7 @@ export class TeamController {
     @ApiOperation({ summary: '팀명 변경' })
     @ApiResponse({ status: 200, description: '변경 성공' })
     @ApiResponse({ status: 409, description: '이미 존재하는 팀 이름' })
-    async updateName(@Request() req: any, @Body() dto: UpdateNameDto) {
+    async updateName(@Request() req: { user: JwtUser }, @Body() dto: UpdateNameDto) {
         return this.teamService.updateName(req.user.id, dto);
     }
 
@@ -43,7 +44,7 @@ export class TeamController {
     @ApiOperation({ summary: '비밀번호 변경' })
     @ApiResponse({ status: 200, description: '변경 성공' })
     @ApiResponse({ status: 401, description: '현재 비밀번호 불일치' })
-    async updatePassword(@Request() req: any, @Body() dto: UpdatePasswordDto) {
+    async updatePassword(@Request() req: { user: JwtUser }, @Body() dto: UpdatePasswordDto) {
         return this.teamService.updatePassword(req.user.id, dto);
     }
 
@@ -52,7 +53,7 @@ export class TeamController {
     @ApiBearerAuth('access-token')
     @ApiOperation({ summary: '팀 탈퇴 (계정 삭제)' })
     @ApiResponse({ status: 200, description: '삭제 성공' })
-    async deleteMe(@Request() req: any) {
+    async deleteMe(@Request() req: { user: JwtUser }) {
         return this.teamService.delete(req.user.id);
     }
 }

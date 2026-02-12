@@ -4,9 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyDto } from './dto/verify.dto';
 import * as bcrypt from 'bcrypt';
-
-// 팀 토큰 만료 시간 (짧은 세션 — 로그인 개념 없이 "비번 확인" 느낌)
-const TEAM_TOKEN_EXPIRY = '15m';
+import { TEAM_TOKEN_EXPIRY } from '../common/constants';
 
 @Injectable()
 export class AuthService {

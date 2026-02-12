@@ -1,18 +1,20 @@
 import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import { AdminLoginDto } from './dto/admin-login.dto';
+import { AdminVerifyDto } from './dto/admin-verify.dto';
 import { CreateAdminReservationDto } from './dto/create-admin-reservation.dto';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { ReservationStatus, ReservationType, WeekStatus } from '@prisma/client';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const KST = 'Asia/Seoul';
+import dayjs from '../common/utils/dayjs';
+import {
+    KST,
+    SLOT_DURATION_MIN,
+    DEFAULT_MAX_SLOTS_PER_WEEK,
+    DEFAULT_MAX_SLOTS_PER_DAY,
+    CONFIG_KEY_MAX_SLOTS_PER_WEEK,
+    CONFIG_KEY_MAX_SLOTS_PER_DAY,
+    ADMIN_TOKEN_EXPIRY,
+} from '../common/constants';
 
 @Injectable()
 export class AdminService {
@@ -25,7 +27,7 @@ export class AdminService {
     // 관리자 인증 (verify)
     // 마스터 패스워드 검증 후 JWT 발급 (1시간)
     // ──────────────────────────────────────
-    async verify(dto: AdminLoginDto) {
+    async verify(dto: AdminVerifyDto) {
         const masterPassword = process.env.ADMIN_PASSWORD;
         if (!masterPassword) {
             throw new UnauthorizedException('서버에 관리자 비밀번호가 설정되지 않았습니다.');
@@ -38,7 +40,7 @@ export class AdminService {
         // 관리자 전용 토큰 발급 (role: ADMIN, 1시간)
         const payload = { sub: 'admin', username: 'admin', role: 'ADMIN' };
         return {
-            access_token: this.jwtService.sign(payload, { expiresIn: '1h' }),
+            access_token: this.jwtService.sign(payload, { expiresIn: ADMIN_TOKEN_EXPIRY }),
         };
     }
 
@@ -47,13 +49,13 @@ export class AdminService {
     // ──────────────────────────────────────
     async getSettings() {
         const [maxSlots, maxSlotsPerDay] = await Promise.all([
-            this.prisma.systemConfig.findUnique({ where: { key: 'MaxSlotsPerWeek' } }),
-            this.prisma.systemConfig.findUnique({ where: { key: 'MaxSlotsPerDay' } }),
+            this.prisma.systemConfig.findUnique({ where: { key: CONFIG_KEY_MAX_SLOTS_PER_WEEK } }),
+            this.prisma.systemConfig.findUnique({ where: { key: CONFIG_KEY_MAX_SLOTS_PER_DAY } }),
         ]);
 
         return {
-            maxSlotsPerWeek: maxSlots ? parseInt(maxSlots.value, 10) : 2,
-            maxSlotsPerDay: maxSlotsPerDay ? parseInt(maxSlotsPerDay.value, 10) : 1, // 기본값 1
+            maxSlotsPerWeek: maxSlots ? parseInt(maxSlots.value, 10) : DEFAULT_MAX_SLOTS_PER_WEEK,
+            maxSlotsPerDay: maxSlotsPerDay ? parseInt(maxSlotsPerDay.value, 10) : DEFAULT_MAX_SLOTS_PER_DAY,
         };
     }
 
@@ -61,19 +63,19 @@ export class AdminService {
     // 시스템 설정 변경
     // ──────────────────────────────────────
     async updateSettings(dto: UpdateSettingsDto) {
-        if (dto.maxSlotsPerWeek) {
+        if (dto.maxSlotsPerWeek !== undefined) {
             await this.prisma.systemConfig.upsert({
-                where: { key: 'MaxSlotsPerWeek' },
+                where: { key: CONFIG_KEY_MAX_SLOTS_PER_WEEK },
                 update: { value: dto.maxSlotsPerWeek.toString() },
-                create: { key: 'MaxSlotsPerWeek', value: dto.maxSlotsPerWeek.toString() },
+                create: { key: CONFIG_KEY_MAX_SLOTS_PER_WEEK, value: dto.maxSlotsPerWeek.toString() },
             });
         }
 
-        if (dto.maxSlotsPerDay) {
+        if (dto.maxSlotsPerDay !== undefined) {
             await this.prisma.systemConfig.upsert({
-                where: { key: 'MaxSlotsPerDay' },
+                where: { key: CONFIG_KEY_MAX_SLOTS_PER_DAY },
                 update: { value: dto.maxSlotsPerDay.toString() },
-                create: { key: 'MaxSlotsPerDay', value: dto.maxSlotsPerDay.toString() },
+                create: { key: CONFIG_KEY_MAX_SLOTS_PER_DAY, value: dto.maxSlotsPerDay.toString() },
             });
         }
 
@@ -90,7 +92,7 @@ export class AdminService {
     // ──────────────────────────────────────
     async createAdminReservation(dto: CreateAdminReservationDto) {
         const startTime = dayjs(dto.startTime).tz(KST);
-        const endTime = startTime.add(50, 'minute');
+        const endTime = startTime.add(SLOT_DURATION_MIN, 'minute');
 
         // 1. 주차 자동 매칭 (모든 주차 가능)
         const week = await this.prisma.week.findFirst({

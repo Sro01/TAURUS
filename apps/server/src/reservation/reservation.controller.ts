@@ -4,6 +4,7 @@ import { CreateInstantReservationDto } from './dto/create-instant-reservation.dt
 import { CreatePreReservationDto } from './dto/create-pre-reservation.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { JwtUser } from '../auth/types';
 
 @ApiTags('Reservation')
 @Controller('reservations')
@@ -18,7 +19,7 @@ export class ReservationController {
   @ApiResponse({ status: 201, description: '예약 성공' })
   @ApiResponse({ status: 400, description: '유효하지 않은 슬롯 / 제한 초과' })
   @ApiResponse({ status: 409, description: '이미 예약된 시간대' })
-  async createInstant(@Request() req: any, @Body() dto: CreateInstantReservationDto) {
+  async createInstant(@Request() req: { user: JwtUser }, @Body() dto: CreateInstantReservationDto) {
     return this.reservationService.createInstant(req.user.id, dto);
   }
 
@@ -29,7 +30,7 @@ export class ReservationController {
   @ApiOperation({ summary: '미리 예약 (다음 주차, PENDING 상태)' })
   @ApiResponse({ status: 201, description: '예약 신청 성공' })
   @ApiResponse({ status: 400, description: '유효하지 않은 슬롯 / 제한 초과' })
-  async createPre(@Request() req: any, @Body() dto: CreatePreReservationDto) {
+  async createPre(@Request() req: { user: JwtUser }, @Body() dto: CreatePreReservationDto) {
     return this.reservationService.createPre(req.user.id, dto);
   }
 
@@ -39,7 +40,7 @@ export class ReservationController {
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: '내 예약 현황 조회' })
   @ApiResponse({ status: 200, description: '조회 성공' })
-  async findMyReservations(@Request() req: any) {
+  async findMyReservations(@Request() req: { user: JwtUser }) {
     return this.reservationService.findMyReservations(req.user.id);
   }
 
@@ -60,7 +61,7 @@ export class ReservationController {
   @ApiParam({ name: 'id', description: '예약 ID' })
   @ApiResponse({ status: 200, description: '취소 성공' })
   @ApiResponse({ status: 403, description: '본인 예약이 아님' })
-  async cancel(@Request() req: any, @Param('id') id: string) {
+  async cancel(@Request() req: { user: JwtUser }, @Param('id') id: string) {
     return this.reservationService.cancel(req.user.id, id);
   }
 }

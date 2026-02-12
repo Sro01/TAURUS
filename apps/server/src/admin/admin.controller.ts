@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Get, Patch, Delete, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
-import { AdminLoginDto } from './dto/admin-login.dto';
+import { AdminVerifyDto } from './dto/admin-verify.dto';
 import { CreateAdminReservationDto } from './dto/create-admin-reservation.dto';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -15,7 +15,7 @@ export class AdminController {
     @Post('verify')
     @ApiOperation({ summary: '관리자 인증 (마스터 패스워드 → 세션 토큰 발급, 1시간)' })
     @ApiResponse({ status: 200, description: 'JWT 토큰 발급' })
-    async verify(@Body() dto: AdminLoginDto) {
+    async verify(@Body() dto: AdminVerifyDto) {
         return this.adminService.verify(dto);
     }
 
