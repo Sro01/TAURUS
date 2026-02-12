@@ -1,7 +1,7 @@
-
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
+import { JwtPayload, JwtUser } from './types';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -9,11 +9,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'secretKey',
+      secretOrKey: (() => {
+        const secret = process.env.JWT_SECRET;
+        if (!secret) throw new Error('JWT_SECRET 환경변수가 설정되지 않았습니다.');
+        return secret;
+      })(),
     });
   }
 
-  async validate(payload: any) {
-    return { id: payload.sub, name: payload.name, role: payload.role };
+  async validate(payload: JwtPayload): Promise<JwtUser> {
+    return { id: payload.sub, name: payload.username, role: payload.role };
   }
 }
+

@@ -5,8 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -29,10 +28,11 @@ enum WeekStatus {
 }
 
 enum ReservationStatus {
-  PENDING    // 예약 대기 (미리 예약)
-  CONFIRMED  // 예약 확정
-  VOID       // 예약 취소/폭파 (시스템)
-  CANCELLED  // 예약 취소 (사용자)
+  PENDING          // 예약 대기 (미리 예약)
+  CONFIRMED        // 예약 확정
+  CONFIRMED_ADMIN  // 관리자 우선 예약 — 선택 불가 표시
+  VOID             // 예약 취소/폭파 (시스템)
+  CANCELLED        // 예약 취소 (사용자)
 }
 
 enum ReservationType {
@@ -49,8 +49,6 @@ model Team {
   id          String   @id @default(uuid())
   name        String   @unique // 팀명 (로그인 ID 역할)
   password    String   // 해시된 비밀번호
-  generation  Int?     // 기수 (선택)
-  description String?  // 팀 설명 (선택)
   role        Role     @default(USER)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -80,8 +78,8 @@ model Reservation {
   status    ReservationStatus @default(PENDING)
   type      ReservationType   @default(INSTANT)
 
-  teamId String
-  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String?  // 관리자 예약은 teamId 없음 (시스템 예약)
+  team   Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   weekId Int
   week   Week @relation(fields: [weekId], references: [id])
