@@ -55,7 +55,7 @@ export default function AuthForm({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          maxLength={4}
+          maxLength={32}
           icon={<Lock className="w-4 h-4" />}
         />
       </div>

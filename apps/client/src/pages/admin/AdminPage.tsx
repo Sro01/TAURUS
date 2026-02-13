@@ -146,10 +146,10 @@ export default function AdminPage() {
         startTime,
         description: adminResDesc
       });
-      alert('관리자 예약이 생성되었습니다.');
+      if (selectedWeekNumber > 0) getReservations(selectedWeekNumber.toString());
       setIsAdminResModalOpen(false);
       setAdminResDesc('');
-      if (selectedWeekNumber > 0) getReservations(selectedWeekNumber.toString());
+      alert('관리자 예약이 생성되었습니다.');
     } catch (error: any) {
       console.error(error);
       const message = error.response?.data?.message || '예약 생성 실패';
@@ -285,7 +285,7 @@ export default function AdminPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg font-bold text-white">
-                          {res.team ? res.team.name : (res.type === 'ADMIN' ? '관리자 점유' : 'Unknown Team')}
+                          {res.teamName || (res.type === 'ADMIN' ? '관리자 점유' : 'Unknown Team')}
                         </span>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${
                           res.status === 'CONFIRMED' ? 'bg-success/20 text-success' :
@@ -310,8 +310,8 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleCancelReservation(res.id, res.team?.name || (res.type === 'ADMIN' ? '관리자' : '알 수 없는 팀'))}
-                    className="p-3 text-text-sub hover:text-error hover:bg-error/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                    onClick={() => handleCancelReservation(res.id, res.teamName || (res.type === 'ADMIN' ? '관리자' : '알 수 없는 팀'))}
+                    className="p-3 text-text-sub hover:text-error hover:bg-error/10 rounded-xl transition-all"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -392,11 +392,10 @@ export default function AdminPage() {
                   <div className="flex items-center gap-3">
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleDeleteTeam(team.id, team.name); }}
-                      className="p-2 text-text-sub hover:text-error bg-white/5 hover:bg-error/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                      className="p-2 text-text-sub hover:text-error bg-white/5 hover:bg-error/10 rounded-lg transition-all"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
-                    <ChevronRight className="w-5 h-5 text-text-sub" />
                   </div>
                 </div>
               ))}
