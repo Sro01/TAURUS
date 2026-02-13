@@ -11,6 +11,8 @@ export interface JwtPayload {
     username: string;
     /** 사용자 역할 */
     role: 'USER' | 'ADMIN';
+    /** 토큰 버전 (비밀번호 변경 시 무효화용) */
+    v?: number;
 }
 
 /** JwtStrategy.validate()가 반환하는 객체 (= req.user) */
