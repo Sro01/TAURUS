@@ -50,6 +50,7 @@ model Team {
   name        String   @unique // 팀명 (로그인 ID 역할)
   password    String   // 해시된 비밀번호
   role        Role     @default(USER)
+  tokenVersion Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -77,6 +78,7 @@ model Reservation {
   endTime   DateTime          // 슬롯 종료 시간 (시작 + 50분)
   status    ReservationStatus @default(PENDING)
   type      ReservationType   @default(INSTANT)
+  description String?           // 관리자 예약 등의 메모 (nullable)
 
   teamId String?  // 관리자 예약은 teamId 없음 (시스템 예약)
   team   Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)

@@ -44,6 +44,14 @@ export class AdminController {
         return this.adminService.createAdminReservation(dto);
     }
 
+    @Get('reservations/team/:teamId')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: '특정 팀의 예약 내역 조회' })
+    async getReservationsByTeam(@Param('teamId') teamId: string) {
+        return this.adminService.getReservationsByTeam(teamId);
+    }
+
     @Delete('reservations/:id')
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @ApiBearerAuth('access-token')

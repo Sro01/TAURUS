@@ -80,11 +80,13 @@ describe('Admin 모듈 (E2E)', () => {
             const res = await request(app.getHttpServer())
                 .post('/admin/reservations')
                 .set('Authorization', `Bearer ${adminToken}`)
-                .send({ startTime: getFutureSlotTime(1, 20) });
+                .send({ startTime: getFutureSlotTime(1, 20), description: '테스트 메모' });
 
             if (res.status === 201) {
                 const data = res.body.data ?? res.body;
                 expect(data.status).toBe('CONFIRMED_ADMIN');
+                expect(data.teamName).toBe('관리자');
+                expect(data.description).toBe('테스트 메모');
             } else {
                 // OPEN 주차가 없을 수 있음
                 expect([400, 404]).toContain(res.status);
@@ -139,6 +141,42 @@ describe('Admin 모듈 (E2E)', () => {
         it('AD-12: 존재하지 않는 팀 삭제 → 404', async () => {
             const res = await request(app.getHttpServer())
                 .delete('/admin/teams/nonexistent-team-id-99999')
+                .set('Authorization', `Bearer ${adminToken}`);
+            expect(res.status).toBe(404);
+        });
+    });
+
+    // ─── 특정 팀 예약 조회 ─────────────────────
+    describe('GET /admin/reservations/team/:teamId', () => {
+        it('AD-15: 특정 팀의 예약 내역 조회', async () => {
+            const { name, token } = await createTestTeam(app, 'team_res_lookup');
+
+            // 예약 생성
+            await request(app.getHttpServer())
+                .post('/reservations/instant')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ startTime: getFutureSlotTime(1, 10) });
+
+            // 팀 ID 가져오기
+            const teamRes = await request(app.getHttpServer())
+                .get('/teams/me')
+                .set('Authorization', `Bearer ${token}`);
+            const teamId = (teamRes.body.data ?? teamRes.body).id;
+
+            const res = await request(app.getHttpServer())
+                .get(`/admin/reservations/team/${teamId}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(res.status).toBe(200);
+            const data = res.body.data ?? res.body;
+            expect(Array.isArray(data)).toBe(true);
+            expect(data.length).toBeGreaterThan(0);
+            expect(data[0]).toHaveProperty('teamId', teamId);
+        });
+
+        it('AD-16: 존재하지 않는 팀 예약 조회 → 404', async () => {
+            const res = await request(app.getHttpServer())
+                .get('/admin/reservations/team/nonexistent-id')
                 .set('Authorization', `Bearer ${adminToken}`);
             expect(res.status).toBe(404);
         });
