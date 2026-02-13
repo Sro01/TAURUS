@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from '../../utils/dayjs';
 import { useTeam, useReservation, useAuth } from '../../hooks';
-import { PageContainer, Card, Button, EmptyState } from '../../components/common';
+import { PageContainer, Card, Button, EmptyState, Modal, Input } from '../../components/common';
 import { Trash2, AlertCircle } from 'lucide-react';
 
 export default function TeamDetailPage() {
@@ -19,6 +19,7 @@ export default function TeamDetailPage() {
   const [editMode, setEditMode] = useState<'name' | 'password'>('name');
   const [editValue, setEditValue] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // 데이터 로드
   useEffect(() => {
@@ -65,6 +66,7 @@ export default function TeamDetailPage() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setIsSubmitting(true);
       const { teamService } = await import('../../services');
       if (editMode === 'name') {
         await teamService.updateName(editValue);
@@ -84,6 +86,8 @@ export default function TeamDetailPage() {
     } catch (error: any) {
       console.error(error);
       alert(error.response?.data?.message || '수정에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -146,7 +150,7 @@ export default function TeamDetailPage() {
 
       {/* 2. 내 예약 목록 */}
       <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-        내 예약 현황
+        팀 예약 현황
         <span className="text-xs font-normal text-text-sub bg-white/10 px-2 py-0.5 rounded-full">
           {myReservations.length}
         </span>
@@ -214,48 +218,39 @@ export default function TeamDetailPage() {
       </div>
 
       {/* 정보 수정 모달 */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-bg-card w-full max-w-sm p-6 rounded-2xl shadow-xl border border-white/10">
-            <h3 className="text-xl font-bold mb-4">
-              {editMode === 'name' ? '팀 이름 변경' : '비밀번호 변경'}
-            </h3>
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              {editMode === 'password' && (
-                <div>
-                    <label className="block text-sm text-text-sub mb-1">
-                        현재 비밀번호
-                    </label>
-                    <input 
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full bg-bg-main border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-primary"
-                        required
-                        placeholder="현재 비밀번호를 입력되세요"
-                    />
-                </div>
-              )}
-              <div>
-                <label className="block text-sm text-text-sub mb-1">
-                  {editMode === 'name' ? '새로운 팀 이름' : '새로운 비밀번호'}
-                </label>
-                <input 
-                  type={editMode === 'name' ? 'text' : 'password'}
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  className="w-full bg-bg-main border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-primary"
-                  required
-                />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button type="button" variant="ghost" fullWidth onClick={() => setIsEditModalOpen(false)}>취소</Button>
-                <Button type="submit" fullWidth>변경</Button>
-              </div>
-            </form>
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title={editMode === 'name' ? '팀 이름 변경' : '비밀번호 변경'}
+      >
+        <form onSubmit={handleEditSubmit} className="space-y-4">
+          {editMode === 'password' && (
+            <Input 
+                label="현재 비밀번호"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+                placeholder="현재 비밀번호를 입력하세요"
+            />
+          )}
+          <Input 
+            label={editMode === 'name' ? '새로운 팀 이름' : '새로운 비밀번호'}
+            type={editMode === 'name' ? 'text' : 'password'}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            required
+            placeholder={editMode === 'name' ? '변경할 팀 이름을 입력하세요' : '새로운 비밀번호 4자리'}
+            maxLength={editMode === 'password' ? 4 : undefined}
+          />
+          <div className="flex gap-2 pt-4">
+            <Button type="button" variant="ghost" fullWidth onClick={() => setIsEditModalOpen(false)}>취소</Button>
+            <Button type="submit" fullWidth disabled={isSubmitting}>
+              {editMode === 'name' ? '변경' : '저장'}
+            </Button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
     </PageContainer>
   );
 }

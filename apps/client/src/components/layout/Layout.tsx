@@ -18,7 +18,7 @@ export default function Layout() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { loginTeam } = useAuth();
+  const { loginTeam, teamName, teamPassword } = useAuth();
 
   const handleNavigate = (path: string) => {
     setIsMenuOpen(false);
@@ -34,7 +34,7 @@ export default function Layout() {
   const handleAuthSubmit = async (name: string, password: string) => {
     try {
       const { access_token } = await authService.verify({ name, password });
-      loginTeam(access_token);
+      loginTeam(access_token, name, password);
       setIsAuthModalOpen(false);
       
       // 팀 ID는 토큰에 포함되어 있지만, 클라이언트에서 바로 알 수 없으므로(디코딩 필요)
@@ -96,6 +96,8 @@ export default function Layout() {
         onClose={() => setIsAuthModalOpen(false)}
         onSubmit={handleAuthSubmit}
         title="팀 관리 접근"
+        initialName={teamName || ''}
+        initialPassword={teamPassword || ''}
       />
     </div>
   );

@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { X } from 'lucide-react';
-import { Button, Overlay } from '../../common';
+import { Overlay } from '../../common';
+import AuthForm from './AuthForm';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -9,6 +9,9 @@ interface AuthModalProps {
   title?: string;
   isSubmitting?: boolean;
   hideNameField?: boolean;
+  submitLabel?: string;
+  initialName?: string;
+  initialPassword?: string;
 }
 
 export default function AuthModal({ 
@@ -18,19 +21,11 @@ export default function AuthModal({
   title = '팀 인증',
   isSubmitting = false,
   hideNameField = false,
-  submitLabel
-}: AuthModalProps & { submitLabel?: string }) {
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
-
+  submitLabel,
+  initialName = '',
+  initialPassword = '',
+}: AuthModalProps) {
   if (!isOpen) return null;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('AuthModal handleSubmit called', { name, password });
-    if ((!hideNameField && !name.trim()) || !password.trim()) return;
-    await onSubmit(name, password);
-  };
 
   return (
     <>
@@ -43,42 +38,20 @@ export default function AuthModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {!hideNameField && (
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-text-sub ml-1">팀 이름</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-bg-main border border-white/10 rounded-lg px-4 py-3 text-text-main focus:border-primary focus:outline-none transition-colors"
-                placeholder="팀 이름을 입력하세요"
-                autoFocus
-              />
-            </div>
-          )}
-
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-text-sub ml-1">비밀번호</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-bg-main border border-white/10 rounded-lg px-4 py-3 text-text-main focus:border-primary focus:outline-none transition-colors"
-              placeholder="비밀번호를 입력하세요"
-              autoFocus={hideNameField}
-            />
-          </div>
-
-          <Button 
-            type="submit" 
-            fullWidth 
-            className="mt-2"
-            disabled={isSubmitting || (!hideNameField && !name) || !password}
-          >
-            {isSubmitting ? '처리 중...' : (submitLabel || '확인')}
-          </Button>
-        </form>
+        <AuthForm
+          initialName={initialName}
+          initialPassword={initialPassword}
+          onSubmit={onSubmit}
+          isSubmitting={isSubmitting}
+          submitLabel={submitLabel}
+          hideNameField={hideNameField}
+          // AuthModal doesn't strictly need a cancel button inside the form 
+          // because it has an X button at top, but maybe consistency?
+          // The old one didn't have a cancel button at the bottom.
+          // AuthForm adds it if onCancel is provided. I won't provide onCancel here if I don't want the button.
+          // But maybe having a cancel button is nice. I'll leave it out to match previous design if possible.
+          // AuthForm: `{onCancel && ( ... )}` -> Safe to omit.
+        />
       </div>
     </>
   );

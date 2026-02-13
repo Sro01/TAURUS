@@ -36,7 +36,14 @@ axiosClient.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             const isAdminApi = error.config?.url?.startsWith('/admin');
-            sessionStorage.removeItem(isAdminApi ? ADMIN_TOKEN_KEY : TEAM_TOKEN_KEY);
+            if (isAdminApi) {
+                sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+            } else {
+                sessionStorage.removeItem(TEAM_TOKEN_KEY);
+                sessionStorage.removeItem('TEAM_NAME');
+                sessionStorage.removeItem('TEAM_PASSWORD');
+            }
+            // window.location.reload(); // 필요 시 리로드
         }
         return Promise.reject(error);
     },

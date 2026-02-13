@@ -6,11 +6,11 @@ import { authService } from '../../services';
 import { PageContainer, Button, EmptyState } from '../../components/common';
 import WeekSelector from '../../components/domain/reservation/WeekSelector';
 import TimeSlotList from '../../components/domain/reservation/TimeSlotList';
-import AuthModal from '../../components/domain/auth/AuthModal';
+import ReservationModal from '../../components/domain/reservation/ReservationModal';
 
 export default function PreReservationPage() {
   const navigate = useNavigate();
-  const { loginTeam } = useAuth();
+  const { loginTeam, teamName, teamPassword } = useAuth();
   
   // 훅
   const { nextWeek } = useWeek();
@@ -23,7 +23,7 @@ export default function PreReservationPage() {
   // 상태
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isResModalOpen, setIsResModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 다음 주차 예약 정보 로드
@@ -48,7 +48,7 @@ export default function PreReservationPage() {
     // "09:00" -> 9
     const hour = parseInt(timeStr.split(':')[0], 10);
     setSelectedSlotId(hour);
-    setIsAuthModalOpen(true);
+    setIsResModalOpen(true);
   };
 
   // 예약 신청 (인증 후 호출됨)
@@ -59,12 +59,11 @@ export default function PreReservationPage() {
     try {
       setIsSubmitting(true);
       
-      // 1. 인증 및 토큰 발급 (자동 가입 옵션 true)
+      // 1. 항상 인증 시도 (정보 갱신)
       const { access_token } = await authService.verify({ name, password, autoRegister: true });
-      loginTeam(access_token);
+      loginTeam(access_token, name, password);
 
       // 2. 예약 생성
-      // 밀리초까지 0으로      // 2. 예약 생성
       // 선택된 날짜(selectedDate) 기준으로 시/분/초 설정
       const startTime = dayjs(selectedDate).hour(selectedSlotId).minute(0).second(0).millisecond(0);
       
@@ -79,9 +78,12 @@ export default function PreReservationPage() {
       });
 
       alert('예약 신청이 완료되었습니다. (승인 대기)');
-      setIsAuthModalOpen(false);
+      setIsResModalOpen(false);
       setSelectedSlotId(null);
-      getReservations(nextWeek.weekNumber.toString()); // 목록 갱신
+      
+      if(nextWeek.weekNumber) {
+        getReservations(nextWeek.weekNumber.toString()); // 목록 갱신
+      }
 
     } catch (error: any) {
       console.error('Reservation Error:', error);
@@ -127,13 +129,20 @@ export default function PreReservationPage() {
         selectedDate={dayjs(selectedDate)}
       />
 
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onSubmit={handleReservationSubmit}
-        title="팀 인증 및 예약 신청"
-        isSubmitting={isSubmitting}
-      />
+      {selectedSlotId !== null && (
+        <ReservationModal
+          isOpen={isResModalOpen}
+          onClose={() => setIsResModalOpen(false)}
+          selectedTime={`${selectedSlotId.toString().padStart(2, '0')}:00`}
+          selectedDate={dayjs(selectedDate)}
+          existingReservations={dailyReservations}
+          isSubmitting={isSubmitting}
+
+          teamName={teamName}
+          teamPassword={teamPassword}
+          onSubmit={handleReservationSubmit}
+        />
+      )}
     </PageContainer>
   );
 }
