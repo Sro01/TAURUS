@@ -24,7 +24,11 @@ export default function InstantReservationPage() {
     if (currentWeek && currentWeek.weekNumber !== undefined) {
       console.log('Current Week:', currentWeek);
       getReservations(currentWeek.weekNumber.toString()).then(res => {
-        console.log('Fetched Reservations:', res.reservations);
+        // res가 ReservationListResponse (confirmed, pending) 이거나
+        // useReservation 훅에서 이미 [] 로 변환했을 수 있음.
+        // useReservation을 보면 getReservations는 service.getReservations를 그대로 리턴.
+        // Service는 ReservationListResponse를 리턴.
+        console.log('Fetched Reservations:', res);
       });
     } else if (currentWeek) {
       console.error('Current week is missing weekNumber:', currentWeek);

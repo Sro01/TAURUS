@@ -1,5 +1,5 @@
 import dayjs from '../../../utils/dayjs';
-import { Week } from '../../../types';
+import { Week } from '../../../types/week';
 
 interface WeekSelectorProps {
   currentWeek: Week | null;

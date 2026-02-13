@@ -1,5 +1,5 @@
 import dayjs from '../../../utils/dayjs';
-import { Reservation } from '../../../types/index';
+import { Reservation } from '../../../types/reservation';
 import { Button, Card } from '../../common';
 
 interface TimeSlotListProps {

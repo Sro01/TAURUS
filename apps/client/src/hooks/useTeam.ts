@@ -1,5 +1,5 @@
 import { teamService } from '../services';
-import { Team } from '../types';
+import { Team } from '../types/team';
 import { useAsync } from './useAsync';
 
 export function useTeam() {
@@ -20,8 +20,8 @@ export function useTeam() {
         return updated;
     };
 
-    const updateTeamPassword = async (password: string) => {
-        await updatePassword(password);
+    const updateTeamPassword = async (currentPassword: string, password: string) => {
+        await updatePassword(currentPassword, password);
     };
 
     const deleteTeam = async () => {

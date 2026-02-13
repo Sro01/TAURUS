@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
-import { reservationService, CreateInstantReservationDto, CreatePreReservationDto } from '../services';
+import { reservationService } from '../services';
+import { CreateInstantReservationDto, CreatePreReservationDto } from '../types/reservation';
 import { useAsync } from './useAsync';
 
 export function useReservation() {
+    // ReservationListResponse = { confirmed: [], pending: [] }
     const {
         data: reservationData,
         loading,
@@ -31,11 +33,11 @@ export function useReservation() {
 
     const createInstantReservation = async (data: CreateInstantReservationDto) => {
         const newRes = await createInstant(data);
-        // 예약 생성 후 목록 갱신 (또는 로컬 상태 업데이트)
+        // 예약 생성 후 목록 갱신 (confirmed에 추가)
         if (reservationData) {
             setReservationData({
                 ...reservationData,
-                reservations: [...reservationData.reservations, newRes]
+                confirmed: [...reservationData.confirmed, newRes]
             });
         }
         return newRes;
@@ -43,29 +45,40 @@ export function useReservation() {
 
     const createPreReservation = async (data: CreatePreReservationDto) => {
         const newRes = await createPre(data);
+        // 예약 생성 후 목록 갱신 (pending에 추가)
+        if (reservationData) {
+            setReservationData({
+                ...reservationData,
+                pending: [...reservationData.pending, newRes]
+            });
+        }
         return newRes;
     };
 
     const cancelReservation = async (id: string) => {
         await cancelRes(id);
-        // 예약 취소 후 목록에서 제거 (전체 목록)
+        // 예약 취소 후 목록에서 제거 (confirmed/pending 양쪽 다 필터링)
         if (reservationData) {
             setReservationData({
-                ...reservationData,
-                reservations: reservationData.reservations.filter(r => r.id !== id)
+                confirmed: reservationData.confirmed.filter(r => r.id !== id),
+                pending: reservationData.pending.filter(r => r.id !== id),
             });
         }
-        // 내 예약 목록에서도 제거 (필요 시)
         if (myReservations) {
-            // myReservations 업데이트 로직은 useAsync 구조상 setData를 노출 안 했으면 fetchMyReservations 다시 호출이 나음
-            // 하지만 여기선 fetchMyReservations를 다시 호출하는 게 간단함
             fetchMyReservations();
         }
     };
 
+    // 호환성을 위해 flat list로 제공
+    const allReservations = [
+        ...(reservationData?.confirmed || []),
+        ...(reservationData?.pending || [])
+    ];
+
     return {
-        reservations: reservationData?.reservations || [],
-        week: reservationData?.week || null,
+        reservations: allReservations, // 기존 코드 호환
+        confirmed: reservationData?.confirmed || [],
+        pending: reservationData?.pending || [],
         myReservations: myReservations || [],
         loading: loading || myResLoading,
         error,
@@ -76,3 +89,4 @@ export function useReservation() {
         cancelReservation,
     };
 }
+

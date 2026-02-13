@@ -18,6 +18,7 @@ export default function TeamDetailPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editMode, setEditMode] = useState<'name' | 'password'>('name');
   const [editValue, setEditValue] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
   
   // 데이터 로드
   useEffect(() => {
@@ -68,12 +69,17 @@ export default function TeamDetailPage() {
       if (editMode === 'name') {
         await teamService.updateName(editValue);
         alert('팀 이름이 변경되었습니다.');
-      } else {
-        await teamService.updatePassword(editValue);
+      } else { // password
+        if (!currentPassword) {
+            alert('현재 비밀번호를 입력해주세요.');
+            return;
+        }
+        await teamService.updatePassword(currentPassword, editValue);
         alert('비밀번호가 변경되었습니다.');
       }
       setIsEditModalOpen(false);
       setEditValue('');
+      setCurrentPassword('');
       fetchMyTeam();
     } catch (error: any) {
       console.error(error);
@@ -84,6 +90,7 @@ export default function TeamDetailPage() {
   const openEditModal = (mode: 'name' | 'password') => {
     setEditMode(mode);
     setEditValue('');
+    setCurrentPassword('');
     setIsEditModalOpen(true);
   };
 
@@ -214,6 +221,21 @@ export default function TeamDetailPage() {
               {editMode === 'name' ? '팀 이름 변경' : '비밀번호 변경'}
             </h3>
             <form onSubmit={handleEditSubmit} className="space-y-4">
+              {editMode === 'password' && (
+                <div>
+                    <label className="block text-sm text-text-sub mb-1">
+                        현재 비밀번호
+                    </label>
+                    <input 
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        className="w-full bg-bg-main border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-primary"
+                        required
+                        placeholder="현재 비밀번호를 입력되세요"
+                    />
+                </div>
+              )}
               <div>
                 <label className="block text-sm text-text-sub mb-1">
                   {editMode === 'name' ? '새로운 팀 이름' : '새로운 비밀번호'}

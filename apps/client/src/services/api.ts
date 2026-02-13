@@ -24,9 +24,15 @@ axiosClient.interceptors.request.use((config) => {
     return config;
 });
 
-// 응답 인터셉터: 401 시 해당 토큰 자동 제거
+// 응답 인터셉터: 데이터 언래핑 및 401 토큰 처리
 axiosClient.interceptors.response.use(
-    (res) => res,
+    (response) => {
+        // 서버가 { code, message, data } 형태로 응답하면 data.data(순수 데이터)만 반환
+        if (response.data && response.data.code === 'SUCCESS') {
+            return response.data.data;
+        }
+        return response.data;
+    },
     (error) => {
         if (error.response?.status === 401) {
             const isAdminApi = error.config?.url?.startsWith('/admin');

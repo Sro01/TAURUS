@@ -1,42 +1,36 @@
 import { axiosClient } from './api';
-import { Team } from '../types/index';
-
-export interface UpdateTeamDto {
-    name?: string;
-    password?: string;
-}
+import { Team, UpdateNameDto, UpdatePasswordDto } from '../types/team';
 
 export const teamService = {
     /**
      * 전체 팀 목록 조회 (검색 가능)
      */
-    getTeams: async (keyword?: string): Promise<Team[]> => {
-        const params = keyword ? { keyword } : {};
-        const response = await axiosClient.get<any>('/teams', { params });
-        return response.data.data;
+    getTeams: async (search?: string): Promise<Team[]> => {
+        const params = search ? { search } : {};
+        // Interceptor에서 이미 data.data를 반환하므로 바로 리턴
+        return await axiosClient.get('/teams', { params });
     },
 
     // 내 팀 상세 조회
     getMe: async (): Promise<Team> => {
-        const response = await axiosClient.get<any>('/teams/me');
-        return response.data.data;
+        return await axiosClient.get('/teams/me');
     },
 
     // 내 팀 이름 수정
-    updateName: async (name: string): Promise<Team> => {
-        const response = await axiosClient.patch<any>('/teams/me/name', { name });
-        return response.data.data;
+    updateName: async (name: string): Promise<{ message: string }> => {
+        const payload: UpdateNameDto = { name };
+        return await axiosClient.patch('/teams/me/name', payload);
     },
 
     // 내 팀 비밀번호 수정
-    updatePassword: async (password: string): Promise<void> => {
-        const response = await axiosClient.patch<any>('/teams/me/password', { password });
-        return response.data.data;
+    updatePassword: async (currentPassword: string, password: string): Promise<{ message: string; access_token: string }> => {
+        const payload: UpdatePasswordDto = { currentPassword, password };
+        return await axiosClient.patch('/teams/me/password', payload);
     },
 
     // 내 팀 탈퇴
-    deleteMe: async (): Promise<void> => {
-        const response = await axiosClient.delete<any>('/teams/me');
-        return response.data.data;
+    deleteMe: async (): Promise<{ message: string }> => {
+        return await axiosClient.delete('/teams/me');
     },
 };
+
