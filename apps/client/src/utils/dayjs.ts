@@ -5,6 +5,8 @@ import timezone from 'dayjs/plugin/timezone';
 import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isoWeek from 'dayjs/plugin/isoWeek';
+import weekOfYear from 'dayjs/plugin/weekOfYear';
 
 dayjs.locale('ko');
 dayjs.extend(utc);
@@ -12,6 +14,8 @@ dayjs.extend(timezone);
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
+dayjs.extend(isoWeek);
+dayjs.extend(weekOfYear);
 
 // 한국 시간대 설정
 dayjs.tz.setDefault('Asia/Seoul');

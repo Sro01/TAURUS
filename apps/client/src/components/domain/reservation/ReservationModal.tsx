@@ -33,7 +33,7 @@ export default function ReservationModal({
         const rTime = dayjs(r.startTime).format('HH:mm');
         return rTime === selectedTime && r.status === 'PENDING';
     })
-    .map(r => r.team?.name || 'Unknown');
+    .map(r => r.teamName || 'Unknown');
 
   const formattedDate = dayjs(selectedDate).format('M월 D일 (ddd)');
 
