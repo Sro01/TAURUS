@@ -1,5 +1,7 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { TEAM_TOKEN_KEY, ADMIN_TOKEN_KEY } from '../services/api';
+import { ROUTES } from '../constants/routes';
 
 interface AuthContextType {
   teamToken: string | null;
@@ -30,7 +32,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.getItem(ADMIN_TOKEN_KEY),
   );
 
-  // 토큰이 없으면 관련 정보도 모두 삭제 (동기화)
+  // 토큰 만료 이벤트 리스너 (Centralized Redirection)
+  useEffect(() => {
+    const handleTokenExpired = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { type } = customEvent.detail;
+      
+      if (type === 'team') {
+        setTeamToken(null);
+        setTeamName(null);
+        setTeamPassword(null);
+        // 팀 토큰 만료 시: 로그인 페이지로 이동 (role=TEAM)
+        window.location.href = `${ROUTES.LOGIN}?role=TEAM`; 
+      } else if (type === 'admin') {
+        setAdminToken(null);
+        // 관리자 토큰 만료 시: 로그인 페이지로 이동 (role=ADMIN)
+        window.location.href = `${ROUTES.LOGIN}?role=ADMIN`;
+      }
+    };
+
+    window.addEventListener('auth:token-expired', handleTokenExpired);
+    return () => {
+      window.removeEventListener('auth:token-expired', handleTokenExpired);
+    };
+  }, []);
+
+  // 토큰 상태 동기화 (탭 간 동기화 등 보조적 목적)
   useEffect(() => {
     if (!teamToken) {
       sessionStorage.removeItem(TEAM_TOKEN_KEY);

@@ -24,26 +24,48 @@ axiosClient.interceptors.request.use((config) => {
     return config;
 });
 
+// Race Condition 방지를 위한 전역 플래그
+let isHandling401 = false;
+
 // 응답 인터셉터: 데이터 언래핑 및 401 토큰 처리
 axiosClient.interceptors.response.use(
     (response) => {
-        // 서버가 { code, message, data } 형태로 응답하면 data.data(순수 데이터)만 반환
         if (response.data && response.data.code === 'SUCCESS') {
             return response.data.data;
         }
         return response.data;
     },
     (error) => {
-        if (error.response?.status === 401) {
-            const isAdminApi = error.config?.url?.startsWith('/admin');
+        if (error.response?.status === 401 && !isHandling401) {
+            isHandling401 = true;
+
+            const url = error.config.url || '';
+            const isAdminApi = url.startsWith('/admin');
+
             if (isAdminApi) {
-                sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+                // 관리자 토큰 만료 처리
+                const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+                if (token) {
+                    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+                    window.dispatchEvent(new CustomEvent('auth:token-expired', {
+                        detail: { type: 'admin' }
+                    }));
+                }
             } else {
-                sessionStorage.removeItem(TEAM_TOKEN_KEY);
-                sessionStorage.removeItem('TEAM_NAME');
-                sessionStorage.removeItem('TEAM_PASSWORD');
+                // 팀 토큰 만료 처리
+                const token = sessionStorage.getItem(TEAM_TOKEN_KEY);
+                if (token) {
+                    sessionStorage.removeItem(TEAM_TOKEN_KEY);
+                    sessionStorage.removeItem('TEAM_NAME');
+                    sessionStorage.removeItem('TEAM_PASSWORD');
+                    window.dispatchEvent(new CustomEvent('auth:token-expired', {
+                        detail: { type: 'team' }
+                    }));
+                }
             }
-            // window.location.reload(); // 필요 시 리로드
+
+            // 1초 후 플래그 해제 (Debounce)
+            setTimeout(() => { isHandling401 = false; }, 1000);
         }
         return Promise.reject(error);
     },

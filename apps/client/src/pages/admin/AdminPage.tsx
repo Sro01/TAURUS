@@ -5,7 +5,7 @@ import { useAuth, useWeek, useReservation } from '../../hooks';
 import { adminService } from '../../services';
 import { PageContainer, Button, Card, Modal, Input } from '../../components/common';
 import AuthModal from '../../components/domain/auth/AuthModal';
-import { Trash2, Settings, Users as UsersIcon, Calendar, LogOut, ChevronRight, Clock, Info } from 'lucide-react';
+import { Trash2, Settings, Users as UsersIcon, Calendar, LogOut, Clock, Info } from 'lucide-react';
 import { Reservation } from '../../types/reservation';
 import { Team } from '../../types/team';
 
