@@ -37,48 +37,50 @@ export class ReservationService {
         // 1. 슬롯 유효성 검증
         this.validateSlotTime(startTime);
 
-        // 2. startTime이 속한 주차 자동 매칭 (OPEN 상태만)
-        const week = await this.prisma.week.findFirst({
-            where: {
-                startDate: { lte: startTime.toDate() },
-                endDate: { gte: startTime.toDate() },
-            },
+        return await this.prisma.$transaction(async (transaction) => {
+            // 2. startTime이 속한 주차 자동 매칭 (OPEN 상태만)
+            const week = await transaction.week.findFirst({
+                where: {
+                    startDate: { lte: startTime.toDate() },
+                    endDate: { gte: startTime.toDate() },
+                },
+            });
+            if (!week) throw new NotFoundException('해당 날짜에 대응하는 주차가 없습니다.');
+            if (week.status !== WeekStatus.OPEN) {
+                throw new BadRequestException('바로 예약은 현재 OPEN 상태인 주차에서만 가능합니다.');
+            }
+
+            // 3. 해당 슬롯에 이미 확정된 예약이 없는지 확인 (선착순 중복 방지)
+            const existingConfirmed = await transaction.reservation.findFirst({
+                where: {
+                    startTime: startTime.toDate(),
+                    weekId: week.id,
+                    status: { in: [ReservationStatus.CONFIRMED, ReservationStatus.CONFIRMED_ADMIN] },
+                },
+            });
+            if (existingConfirmed) {
+                throw new ConflictException('이미 예약된 시간대입니다.');
+            }
+
+            // 4. 예약 제한 체크
+            await this.checkMaxSlots(teamId, week.id, transaction);
+            await this.checkDailyMaxSlots(teamId, startTime, transaction);
+
+            // 5. 예약 생성 (즉시 CONFIRMED)
+            const reservation = await transaction.reservation.create({
+                data: {
+                    startTime: startTime.toDate(),
+                    endTime: endTime.toDate(),
+                    status: ReservationStatus.CONFIRMED,
+                    type: ReservationType.INSTANT,
+                    teamId,
+                    weekId: week.id,
+                },
+                include: { team: { select: { name: true } } },
+            });
+
+            return new ReservationResponseDto(reservation, true);
         });
-        if (!week) throw new NotFoundException('해당 날짜에 대응하는 주차가 없습니다.');
-        if (week.status !== WeekStatus.OPEN) {
-            throw new BadRequestException('바로 예약은 현재 OPEN 상태인 주차에서만 가능합니다.');
-        }
-
-        // 3. 해당 슬롯에 이미 확정된 예약이 없는지 확인 (선착순 중복 방지)
-        const existingConfirmed = await this.prisma.reservation.findFirst({
-            where: {
-                startTime: startTime.toDate(),
-                weekId: week.id,
-                status: { in: [ReservationStatus.CONFIRMED, ReservationStatus.CONFIRMED_ADMIN] },
-            },
-        });
-        if (existingConfirmed) {
-            throw new ConflictException('이미 예약된 시간대입니다.');
-        }
-
-        // 4. 예약 제한 체크
-        await this.checkMaxSlots(teamId, week.id);
-        await this.checkDailyMaxSlots(teamId, startTime);
-
-        // 5. 예약 생성 (즉시 CONFIRMED)
-        const reservation = await this.prisma.reservation.create({
-            data: {
-                startTime: startTime.toDate(),
-                endTime: endTime.toDate(),
-                status: ReservationStatus.CONFIRMED,
-                type: ReservationType.INSTANT,
-                teamId,
-                weekId: week.id,
-            },
-            include: { team: { select: { name: true } } },
-        });
-
-        return new ReservationResponseDto(reservation, true);
     }
 
     // ──────────────────────────────────────
@@ -92,50 +94,52 @@ export class ReservationService {
         // 1. 슬롯 유효성 검증
         this.validateSlotTime(startTime);
 
-        // 2. startTime이 속한 주차 자동 매칭 (UPCOMING 상태만)
-        const week = await this.prisma.week.findFirst({
-            where: {
-                startDate: { lte: startTime.toDate() },
-                endDate: { gte: startTime.toDate() },
-            },
+        return await this.prisma.$transaction(async (transaction) => {
+            // 2. startTime이 속한 주차 자동 매칭 (UPCOMING 상태만)
+            const week = await transaction.week.findFirst({
+                where: {
+                    startDate: { lte: startTime.toDate() },
+                    endDate: { gte: startTime.toDate() },
+                },
+            });
+            if (!week) throw new NotFoundException('해당 날짜에 대응하는 주차가 없습니다.');
+            if (week.status !== WeekStatus.UPCOMING) {
+                throw new BadRequestException('미리 예약은 다음 주차(UPCOMING)에서만 가능합니다.');
+            }
+
+            // 3. 같은 팀이 같은 슬롯에 중복 신청했는지 확인
+            const duplicateRequest = await transaction.reservation.findFirst({
+                where: {
+                    startTime: startTime.toDate(),
+                    weekId: week.id,
+                    teamId,
+                    status: ReservationStatus.PENDING,
+                },
+            });
+            if (duplicateRequest) {
+                throw new ConflictException('이미 해당 시간대에 미리 예약을 신청했습니다.');
+            }
+
+            // 4. 예약 제한 체크
+            await this.checkMaxSlots(teamId, week.id, transaction);
+            await this.checkDailyMaxSlots(teamId, startTime, transaction);
+
+            // 5. 예약 생성 (PENDING)
+            const reservation = await transaction.reservation.create({
+                data: {
+                    startTime: startTime.toDate(),
+                    endTime: endTime.toDate(),
+                    status: ReservationStatus.PENDING,
+                    type: ReservationType.PRE,
+                    teamId,
+                    weekId: week.id,
+                },
+                include: { team: { select: { name: true } } },
+            });
+
+            // 미리 예약은 팀명 비공개
+            return new ReservationResponseDto(reservation, false);
         });
-        if (!week) throw new NotFoundException('해당 날짜에 대응하는 주차가 없습니다.');
-        if (week.status !== WeekStatus.UPCOMING) {
-            throw new BadRequestException('미리 예약은 다음 주차(UPCOMING)에서만 가능합니다.');
-        }
-
-        // 3. 같은 팀이 같은 슬롯에 중복 신청했는지 확인
-        const duplicateRequest = await this.prisma.reservation.findFirst({
-            where: {
-                startTime: startTime.toDate(),
-                weekId: week.id,
-                teamId,
-                status: ReservationStatus.PENDING,
-            },
-        });
-        if (duplicateRequest) {
-            throw new ConflictException('이미 해당 시간대에 미리 예약을 신청했습니다.');
-        }
-
-        // 4. 예약 제한 체크
-        await this.checkMaxSlots(teamId, week.id);
-        await this.checkDailyMaxSlots(teamId, startTime);
-
-        // 5. 예약 생성 (PENDING)
-        const reservation = await this.prisma.reservation.create({
-            data: {
-                startTime: startTime.toDate(),
-                endTime: endTime.toDate(),
-                status: ReservationStatus.PENDING,
-                type: ReservationType.PRE,
-                teamId,
-                weekId: week.id,
-            },
-            include: { team: { select: { name: true } } },
-        });
-
-        // 미리 예약은 팀명 비공개
-        return new ReservationResponseDto(reservation, false);
     }
 
     // ──────────────────────────────────────
@@ -178,21 +182,12 @@ export class ReservationService {
             .filter(r => r.status === ReservationStatus.CONFIRMED || r.status === ReservationStatus.CONFIRMED_ADMIN)
             .map(r => new ReservationResponseDto(r, true));
 
-        // PENDING 예약을 슬롯별로 그룹화하여 팀 수만 반환
-        const pendingBySlot = new Map<string, number>();
-        reservations
+        // 대기 예약: 팀명 공개 (요청에 따라 전체 정보 및 팀명 반환)
+        const pending = reservations
             .filter(r => r.status === ReservationStatus.PENDING)
-            .forEach(r => {
-                const key = r.startTime.toISOString();
-                pendingBySlot.set(key, (pendingBySlot.get(key) || 0) + 1);
-            });
+            .map(r => new ReservationResponseDto(r, true));
 
-        const pendingSummary = Array.from(pendingBySlot.entries()).map(([startTime, count]) => ({
-            startTime,
-            pendingCount: count,
-        }));
-
-        return { confirmed, pendingSummary };
+        return { confirmed, pending };
     }
 
     // ──────────────────────────────────────
@@ -293,10 +288,11 @@ export class ReservationService {
     // ──────────────────────────────────────
     // 공통: MaxSlotsPerWeek 체크
     // ──────────────────────────────────────
-    private async checkMaxSlots(teamId: string, weekId: number) {
-        const maxSlots = await this.getMaxSlotsPerWeek();
+    private async checkMaxSlots(teamId: string, weekId: number, tx?: PrismaService | any) {
+        const client = tx || this.prisma;
+        const maxSlots = await this.getMaxSlotsPerWeek(client);
 
-        const activeCount = await this.prisma.reservation.count({
+        const activeCount = await client.reservation.count({
             where: {
                 teamId,
                 weekId,
@@ -311,8 +307,9 @@ export class ReservationService {
         }
     }
 
-    private async getMaxSlotsPerWeek(): Promise<number> {
-        const config = await this.prisma.systemConfig.findUnique({
+    private async getMaxSlotsPerWeek(tx?: PrismaService | any): Promise<number> {
+        const client = tx || this.prisma;
+        const config = await client.systemConfig.findUnique({
             where: { key: CONFIG_KEY_MAX_SLOTS_PER_WEEK },
         });
         return config ? parseInt(config.value, 10) : DEFAULT_MAX_SLOTS_PER_WEEK;
@@ -321,13 +318,14 @@ export class ReservationService {
     // ──────────────────────────────────────
     // 공통: MaxSlotsPerDay 체크
     // ──────────────────────────────────────
-    private async checkDailyMaxSlots(teamId: string, startTime: dayjs.Dayjs) {
-        const maxSlotsPerDay = await this.getMaxSlotsPerDay();
+    private async checkDailyMaxSlots(teamId: string, startTime: dayjs.Dayjs, tx?: PrismaService | any) {
+        const client = tx || this.prisma;
+        const maxSlotsPerDay = await this.getMaxSlotsPerDay(client);
 
         const startOfDay = startTime.startOf('day').toDate();
         const endOfDay = startTime.endOf('day').toDate();
 
-        const dailyCount = await this.prisma.reservation.count({
+        const dailyCount = await client.reservation.count({
             where: {
                 teamId,
                 startTime: {
@@ -345,8 +343,9 @@ export class ReservationService {
         }
     }
 
-    private async getMaxSlotsPerDay(): Promise<number> {
-        const config = await this.prisma.systemConfig.findUnique({
+    private async getMaxSlotsPerDay(tx?: PrismaService | any): Promise<number> {
+        const client = tx || this.prisma;
+        const config = await client.systemConfig.findUnique({
             where: { key: CONFIG_KEY_MAX_SLOTS_PER_DAY },
         });
         return config ? parseInt(config.value, 10) : DEFAULT_MAX_SLOTS_PER_DAY;

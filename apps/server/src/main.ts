@@ -4,6 +4,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exception.filter';
+import { HttpAdapterHost } from '@nestjs/core';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,7 +23,12 @@ async function bootstrap() {
 
   // 공통 응답/에러 처리 적용
   app.useGlobalInterceptors(new TransformInterceptor());
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // PrismaExceptionFilter가 먼저 실행되어야 Prisma 에러를 잡아서 HttpException으로 변환 가능할 수도 있지만,
+  // NestJS 필터 순서는 거꾸로 동작하지 않음 (선언 순서대로 바인딩).
+  // 다만 BaseExceptionFilter를 상속받았으므로, 구체적인 에러를 잡는 필터를 먼저 등록하거나 순서를 조정.
+  // 여기서는 HttpExceptionFilter가 모든 에러를 최종적으로 포맷팅하길 원한다면...
+  // 하지만 PrismaFilter에서 response.json()을 직접 보내므로, 이걸 먼저 등록해서 처리하게 함.
+  app.useGlobalFilters(new HttpExceptionFilter(), new PrismaClientExceptionFilter(app.get(HttpAdapterHost)));
 
   const config = new DocumentBuilder()
     .setTitle('Taurus API')

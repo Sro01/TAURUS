@@ -5,9 +5,15 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateNameDto } from './dto/update-name.dto';
 import * as bcrypt from 'bcrypt';
 
+import { JwtService } from '@nestjs/jwt';
+import { TEAM_TOKEN_EXPIRY } from '../common/constants';
+
 @Injectable()
 export class TeamService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private jwtService: JwtService
+    ) { }
 
     // 전체 팀 조회 (검색 가능)
     async findAll(search?: string): Promise<TeamResponseDto[]> {
@@ -61,7 +67,7 @@ export class TeamService {
     }
 
     // 비밀번호 변경 (기존 비밀번호 검증 포함)
-    async updatePassword(id: string, dto: UpdatePasswordDto): Promise<{ message: string }> {
+    async updatePassword(id: string, dto: UpdatePasswordDto): Promise<{ message: string; access_token: string }> {
         const team = await this.prisma.team.findUnique({ where: { id } });
         if (!team) {
             throw new NotFoundException('팀을 찾을 수 없습니다.');
@@ -74,12 +80,29 @@ export class TeamService {
         }
 
         const hashedPassword = await bcrypt.hash(dto.password, 10);
-        await this.prisma.team.update({
+
+        // 비밀번호 업데이트 및 tokenVersion 증가
+        const updatedTeam = await this.prisma.team.update({
             where: { id },
-            data: { password: hashedPassword },
+            data: {
+                password: hashedPassword,
+                tokenVersion: { increment: 1 }
+            },
         });
 
-        return { message: '비밀번호가 변경되었습니다.' };
+        // 새 토큰 발급 (로그인 유지용)
+        const payload = {
+            sub: updatedTeam.id,
+            username: updatedTeam.name,
+            role: updatedTeam.role,
+            v: updatedTeam.tokenVersion
+        };
+        const newToken = this.jwtService.sign(payload, { expiresIn: TEAM_TOKEN_EXPIRY });
+
+        return {
+            message: '비밀번호가 변경되었습니다.',
+            access_token: newToken
+        };
     }
 
     // 팀 삭제 (탈퇴)

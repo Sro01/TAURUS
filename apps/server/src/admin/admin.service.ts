@@ -5,6 +5,7 @@ import { AdminVerifyDto } from './dto/admin-verify.dto';
 import { CreateAdminReservationDto } from './dto/create-admin-reservation.dto';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { ReservationStatus, ReservationType, WeekStatus } from '@prisma/client';
+import { ReservationResponseDto } from '../reservation/dto/reservation-response.dto';
 import dayjs from '../common/utils/dayjs';
 import {
     KST,
@@ -155,10 +156,34 @@ export class AdminService {
                 type: ReservationType.ADMIN,
                 weekId: week.id,
                 teamId: null, // 시스템 예약
+                description: dto.description || null,
             },
         });
 
-        return reservation;
+        return new ReservationResponseDto(reservation, true);
+    }
+
+    // ──────────────────────────────────────
+    // 특정 팀의 예약 내역 조회
+    // ──────────────────────────────────────
+    async getReservationsByTeam(teamId: string) {
+        const team = await this.prisma.team.findUnique({ where: { id: teamId } });
+        if (!team) throw new NotFoundException('팀을 찾을 수 없습니다.');
+
+        const reservations = await this.prisma.reservation.findMany({
+            where: { teamId },
+            orderBy: { startTime: 'desc' },
+            include: {
+                week: {
+                    select: { weekNumber: true }
+                },
+                team: {
+                    select: { name: true }
+                }
+            }
+        });
+
+        return reservations.map(r => new ReservationResponseDto(r, true));
     }
 
     // ──────────────────────────────────────

@@ -37,6 +37,9 @@ export class ReservationResponseDto {
     @ApiProperty({ description: '생성 시각 (KST)' })
     createdAt!: string;
 
+    @ApiProperty({ description: '팀 설명 (합주곡, 관리자 메모 등등)', nullable: true })
+    description!: string | null;
+
     constructor(reservation: Reservation & { team?: { name: string } | null }, showTeamName: boolean) {
         this.id = reservation.id;
         this.startTime = dayjs(reservation.startTime).tz(KST).format();
@@ -44,8 +47,15 @@ export class ReservationResponseDto {
         this.status = reservation.status;
         this.type = reservation.type;
         this.teamId = reservation.teamId;
-        this.teamName = showTeamName && reservation.team ? reservation.team.name : null;
+
+        if (showTeamName) {
+            this.teamName = reservation.team?.name || (reservation.type === ReservationType.ADMIN ? '관리자' : null);
+        } else {
+            this.teamName = null;
+        }
+
         this.weekId = reservation.weekId;
         this.createdAt = dayjs(reservation.createdAt).tz(KST).format();
+        this.description = reservation.description;
     }
 }

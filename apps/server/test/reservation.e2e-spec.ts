@@ -159,10 +159,29 @@ describe('Reservation 모듈 (E2E)', () => {
             expect([200, 404]).toContain(res.status);
         });
 
-        it('R-17: 주차별 예약 현황 (next)', async () => {
+        it('R-17: 주차별 예약 현황 (next) - 상세 정보 및 팀명 노출 확인', async () => {
+            // 미리 예약 생성
+            await request(app.getHttpServer())
+                .post('/reservations/pre')
+                .set('Authorization', `Bearer ${team1Token}`)
+                .send({ startTime: getFutureSlotTime(7, 10) });
+
             const res = await request(app.getHttpServer())
                 .get('/reservations/week/next');
-            expect([200, 404]).toContain(res.status);
+
+            if (res.status === 200) {
+                const data = res.body.data ?? res.body;
+                expect(data).toHaveProperty('pending');
+                expect(Array.isArray(data.pending)).toBe(true);
+
+                if (data.pending.length > 0) {
+                    const firstPending = data.pending[0];
+                    expect(firstPending).toHaveProperty('teamName');
+                    expect(firstPending.teamName).not.toBeNull();
+                }
+            } else {
+                expect(res.status).toBe(404);
+            }
         });
 
         it('R-19: 잘못된 주차 파라미터 → 400', async () => {

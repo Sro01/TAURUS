@@ -42,10 +42,15 @@ export async function createTestTeam(
     app: INestApplication,
     suffix: string,
     password = '1234',
-): Promise<{ name: string; token: string }> {
+): Promise<{ name: string; token: string; id: string }> {
     const name = `${TEST_PREFIX}${suffix}`;
     const token = await getTeamToken(app, name, password, true);
-    return { name, token };
+
+    // 토큰에서 ID 추출 (base64 decode)
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    const id = payload.sub;
+
+    return { name, token, id };
 }
 
 /**

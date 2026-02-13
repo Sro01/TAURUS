@@ -60,7 +60,7 @@ export class AuthService {
                     data: { name: dto.name, password: hashedPassword },
                 });
 
-                const payload = { sub: newTeam.id, username: newTeam.name, role: newTeam.role };
+                const payload = { sub: newTeam.id, username: newTeam.name, role: newTeam.role, v: newTeam.tokenVersion };
                 return {
                     access_token: this.jwtService.sign(payload, { expiresIn: TEAM_TOKEN_EXPIRY }),
                     isNewTeam: true,
@@ -78,7 +78,7 @@ export class AuthService {
         }
 
         // 짧은 세션 토큰 발급 (15분)
-        const payload = { sub: team.id, username: team.name, role: team.role };
+        const payload = { sub: team.id, username: team.name, role: team.role, v: team.tokenVersion };
         return {
             access_token: this.jwtService.sign(payload, { expiresIn: TEAM_TOKEN_EXPIRY }),
             isNewTeam: false,

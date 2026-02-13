@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { TransformInterceptor } from '../src/common/interceptors/transform.interceptor';
 
 // 테스트 데이터 prefix — 실제 데이터와 구분
 export const TEST_PREFIX = '__test_';
@@ -25,6 +26,8 @@ export async function createTestApp(): Promise<INestApplication> {
             transform: true,
         }),
     );
+    // 실제 응답 포맷과 동일하게 Interceptor 적용
+    app.useGlobalInterceptors(new TransformInterceptor());
 
     await app.init();
     return app;
