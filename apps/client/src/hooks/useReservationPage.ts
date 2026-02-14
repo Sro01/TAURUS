@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import dayjs from '../../../../utils/dayjs';
-import { useWeek, useReservation } from '../../../../hooks';
-import { Week } from '../../../../types/week';
+import dayjs from '../utils/dayjs';
+import { useWeek, useReservation } from '.';
+import { Week } from '../types/week';
 
 interface UseReservationPageProps {
     weekType: 'current' | 'next';

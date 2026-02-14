@@ -16,7 +16,7 @@ export default function ListRow({ left, center, right, onClick, className = '' }
       onClick={onClick}
       className={`
         w-full flex items-center justify-between p-4 
-        bg-surface border-b border-border last:border-0 
+        border-b border-border last:border-0 
         transition-colors duration-200
         ${onClick ? 'cursor-pointer hover:bg-surface-elevated text-left' : ''}
         ${className}

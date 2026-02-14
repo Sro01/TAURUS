@@ -9,7 +9,7 @@ interface SectionHeaderProps {
 
 export default function SectionHeader({ title, description, action, className = '' }: SectionHeaderProps) {
   return (
-    <div className={`flex items-end justify-between border-b border-border pb-4 mb-6 ${className}`}>
+    <div className={`flex items-end justify-between ${className} border-b border-border pb-4 mb-6`}>
       <div>
         <h3 className="text-xl font-bold text-text-main tracking-tight">{title}</h3>
         {description && <p className="text-sm text-text-sub mt-1">{description}</p>}

@@ -1,6 +1,6 @@
 import dayjs from '../../utils/dayjs';
 import { useAuth } from '../../hooks';
-import { useReservationPage } from '../../components/domain/reservation/hooks/useReservationPage';
+import { useReservationPage } from '../../hooks/useReservationPage';
 import { useReservationAction } from '../../hooks/useReservationAction';
 import ReservationPageLayout from '../../components/domain/reservation/ReservationPageLayout';
 

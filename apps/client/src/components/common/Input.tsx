@@ -12,7 +12,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const baseStyles = "bg-bg-main border border-white/10 rounded-xl px-4 py-3 text-white outline-none transition-all placeholder:text-text-sub/50 disabled:opacity-50 disabled:cursor-not-allowed";
     const focusStyles = "focus:border-primary focus:ring-1 focus:ring-primary/50";
     const errorStyles = error ? "border-error/50 focus:border-error focus:ring-error/50" : focusStyles;
-    const widthStyles = fullWidth ? "w-full" : "";
+    const widthStyles = fullWidth ? "" : "w-full";
     
     return (
       <div className={`${widthStyles} text-left`}>

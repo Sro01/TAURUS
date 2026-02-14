@@ -1,8 +1,7 @@
 import { useAdminPage, AdminTab } from '../../hooks/useAdminPage';
-import { PageContainer, Button } from '../../components/common';
+import { PageContainer, Button, SectionHeader } from '../../components/common';
 import NavigationBar, { TabItem } from '../../components/common/NavigationBar';
 import AuthModal from '../../components/domain/auth/AuthModal';
-import { Settings, Users as UsersIcon, Calendar, LogOut } from 'lucide-react';
 import AdminReservations from '../../components/domain/admin/AdminReservations';
 import AdminSettings from '../../components/domain/admin/AdminSettings';
 import AdminTeams from '../../components/domain/admin/AdminTeams';
@@ -13,15 +12,15 @@ export default function AdminPage() {
     setActiveTab,
     isAuthModalOpen,
     handleAuthSubmit,
-    handleLogout,
     handleNavigateHome,
+    handleLogout,
     isAdminAuthenticated
   } = useAdminPage();
 
   const tabs: TabItem[] = [
-    { id: 'reservations', label: '예약 관리', icon: Calendar },
-    { id: 'teams', label: '팀 관리', icon: UsersIcon },
-    { id: 'settings', label: '시스템 설정', icon: Settings },
+    { id: 'reservations', label: '예약 관리' },
+    { id: 'teams', label: '팀 관리' },
+    { id: 'settings', label: '시스템 설정' },
   ];
 
   if (!isAdminAuthenticated) {
@@ -43,20 +42,23 @@ export default function AdminPage() {
   }
 
   return (
-    <PageContainer title="관리자 대시보드">
+    <PageContainer>
+      {/* 1. Header & Logout */}
+            <SectionHeader 
+              title="관리자 페이지"
+              action={
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  로그아웃
+                </Button>
+              }
+              className="border-none"
+            />
       {/* 상단 네비게이션 */}
         <NavigationBar<AdminTab>
           tabs={tabs}
             activeTab={activeTab}
             onTabChange={setActiveTab}
         />
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-bg-card p-4 rounded-2xl border border-white/5">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-           <Button variant="ghost" onClick={handleLogout} className="text-sm p-2 text-text-sub hover:text-error">
-             <LogOut className="w-5 h-5" />
-           </Button>
-        </div>
-      </div>
 
       {/* 예약 관리 탭 */}
       {activeTab === 'reservations' && <AdminReservations />}

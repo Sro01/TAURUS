@@ -93,9 +93,7 @@ export default function TimeSlot(props: TimeSlotProps) {
     <div className="relative pl-6 pb-2 group">
       {/* 연결선 */}
       {!isLast && (
-        <div className={`absolute left-[19px] top-5 bottom-[-8px] w-0.5 transition-colors duration-300 ${
-          state === 'confirmed' ? 'bg-red-900/30' : 'bg-neutral-800'
-        }`} />
+        <div className={`absolute left-[19px] top-5 bottom-[-8px] w-[2px] transition-colors duration-300 bg-neutral-800`} />
       )}
 
       {/* 점 */}

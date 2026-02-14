@@ -21,7 +21,7 @@ export default function NavigationBar<T extends string>({
     className = ''
 }: NavigationBarProps<T>) {
     return (
-        <div className={`flex gap-2 p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md ${className}`}>
+        <div className={`flex items-center justify-center gap-2 mb-6 p-1.5 rounded-2xl bg-white/5 backdrop-blur-md ${className}`}>
             {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
