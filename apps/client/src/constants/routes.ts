@@ -6,5 +6,6 @@ export const ROUTES = {
     LOGIN: '/login',
     ADMIN: '/admin',
     TEAMS_ME: '/teams/me',
+    DESIGN_TEST: '/design-test', // Temporary for verification
     NOT_FOUND: '*',
 } as const;

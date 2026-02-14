@@ -9,6 +9,7 @@ import TeamDetailPage from './pages/team/TeamDetailPage';
 import AdminPage from './pages/admin/AdminPage';
 import NotFoundPage from './pages/not-found/NotFoundPage';
 import LoginPage from './pages/auth/LoginPage';
+import DesignSystemTestPage from './pages/design-system-test';
 import { ROUTES } from './constants/routes';
 
 // Public Routes: 누구나 접근 가능
@@ -30,6 +31,10 @@ const publicRoutes: RouteObject = {
       {
         path: ROUTES.LOGIN,
         element: <LoginPage />,
+      },
+      {
+        path: ROUTES.DESIGN_TEST,
+        element: <DesignSystemTestPage />,
       },
       {
         path: ROUTES.NOT_FOUND,

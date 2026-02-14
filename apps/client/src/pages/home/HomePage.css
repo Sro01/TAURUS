@@ -107,17 +107,18 @@
   overflow: hidden;
 }
 
+.play-button.pulse-animation {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  animation: pulse 2s infinite;
+}
+
 .play-button:hover {
   background: white;
   color: black;
   border-color: white;
   box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-}
-
-.play-button.pulse-animation {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
-  animation: pulse 2s infinite;
+  animation: none;
 }
 
 .play-button:disabled {
