@@ -34,11 +34,11 @@ export class ReservationController {
     return this.reservationService.createPre(req.user.id, dto);
   }
 
-  // 내 예약 현황 — README 4-2
+  // 팀 예약 현황 — README 4-2
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: '내 예약 현황 조회' })
+  @ApiOperation({ summary: '팀 예약 현황 조회' })
   @ApiResponse({ status: 200, description: '조회 성공' })
   async findMyReservations(@Request() req: { user: JwtUser }) {
     return this.reservationService.findMyReservations(req.user.id);

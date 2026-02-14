@@ -1,15 +1,34 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #E50914;
-  --color-bg-main: #121212;
-  --color-bg-card: #1E1E1E;
-  --color-text-main: #FFFFFF;
-  --color-text-sub: #B3B3B3;
-  --color-success: #4CAF50;
-  --color-error: #CF6679;
+  /* Brand Colors */
+  --color-brand-red: #d32c2b; /* MAIN ACCENT - CTA, Active State */
+  --color-brand-dark: #09090b; /* MAIN BG */
+  
+  /* Core Surfaces */
+  --color-surface: #18181b; /* Card, Sidebar */
+  --color-surface-elevated: #27272a; /* Modal, Dropdown */
+  --color-border: #27272a; /* Default Border */
+  --color-border-active: #3f3f46; /* Hover Border */
 
+  /* Text Colors */
+  --color-text-main: #f4f4f5; /* Primary Content */
+  --color-text-sub: #a1a1aa; /* Secondary, Label */
+  --color-text-muted: #52525b; /* Disabled, Placeholder */
+
+  /* Status Colors */
+  --color-status-success: #10b981; /* Success feedback */
+  --color-status-warn: #f59e0b; /* Warnings */
+  --color-status-danger: #ef4444; /* Destructive actions (NOT brand-red) */
+  --color-status-info: #3b82f6; /* Information */
+
+  /* Typography */
   --font-sans: "Pretendard", system-ui, sans-serif;
+  
+  /* Mapping legacy variables (for gradual migration) */
+  --color-primary: var(--color-brand-red);
+  --color-bg-main: var(--color-brand-dark);
+  --color-bg-card: var(--color-surface);
 }
 
 :root {
@@ -26,11 +45,21 @@ body {
 }
 
 @layer components {
+  /* Legacy buttons mapped to new styles temporarily */
   .btn-primary {
-    @apply px-4 py-2 bg-primary text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply px-4 py-2 bg-brand-red text-white rounded-lg hover:brightness-110 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
   
   .btn-outline {
-    @apply px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/10 transition-colors;
+    @apply px-4 py-2 border border-brand-red text-brand-red rounded-lg hover:bg-brand-red/10 transition-colors;
+  }
+}
+
+@layer utilities {
+  .animate-enter {
+    @apply duration-200 ease-out;
+  }
+  .animate-leave {
+    @apply duration-150 ease-in;
   }
 }

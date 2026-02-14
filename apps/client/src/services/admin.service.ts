@@ -1,14 +1,10 @@
 import { axiosClient } from './api';
-
-export interface AdminSettings {
-    maxSlotsPerWeek: number;
-    maxSlotsPerDay: number;
-}
-
-export interface CreateAdminReservationDto {
-    startTime: string;
-    description: string;
-}
+import {
+    AdminSettings,
+    UpdateSettingsDto,
+    CreateAdminReservationDto
+} from '../types/admin';
+import { Reservation } from '../types/reservation';
 
 export const adminService = {
     /**
@@ -16,8 +12,8 @@ export const adminService = {
      * POST /admin/verify
      */
     verify: async (password: string): Promise<{ access_token: string }> => {
-        const response = await axiosClient.post<any>('/admin/verify', { password });
-        return response.data.data;
+        // Interceptor가 data.data를 반환함
+        return await axiosClient.post('/admin/verify', { password });
     },
 
     /**
@@ -25,26 +21,31 @@ export const adminService = {
      * GET /admin/settings
      */
     getSettings: async (): Promise<AdminSettings> => {
-        const response = await axiosClient.get<any>('/admin/settings');
-        return response.data.data;
+        return await axiosClient.get('/admin/settings');
     },
 
     /**
      * 시스템 설정 변경
      * PATCH /admin/settings
      */
-    updateSettings: async (settings: Partial<AdminSettings>): Promise<AdminSettings> => {
-        const response = await axiosClient.patch<any>('/admin/settings', settings);
-        return response.data.data;
+    updateSettings: async (settings: UpdateSettingsDto): Promise<AdminSettings> => {
+        return await axiosClient.patch('/admin/settings', settings);
     },
 
     /**
      * 관리자 예약 생성 (강제)
      * POST /admin/reservations
      */
-    createReservation: async (data: CreateAdminReservationDto): Promise<any> => {
-        const response = await axiosClient.post<any>('/admin/reservations', data);
-        return response.data.data;
+    createReservation: async (data: CreateAdminReservationDto): Promise<Reservation> => {
+        return await axiosClient.post('/admin/reservations', data);
+    },
+
+    /**
+     * 특정 팀 예약 이력 조회
+     * GET /admin/reservations/team/:teamId
+     */
+    getReservationsByTeam: async (teamId: string): Promise<Reservation[]> => {
+        return await axiosClient.get(`/admin/reservations/team/${teamId}`);
     },
 
     /**
@@ -52,7 +53,7 @@ export const adminService = {
      * DELETE /admin/reservations/:id
      */
     cancelReservation: async (id: string): Promise<void> => {
-        await axiosClient.delete<any>(`/admin/reservations/${id}`);
+        await axiosClient.delete(`/admin/reservations/${id}`);
     },
 
     /**
@@ -60,6 +61,7 @@ export const adminService = {
      * DELETE /admin/teams/:id
      */
     deleteTeam: async (id: string): Promise<void> => {
-        await axiosClient.delete<any>(`/admin/teams/${id}`);
+        await axiosClient.delete(`/admin/teams/${id}`);
     },
 };
+

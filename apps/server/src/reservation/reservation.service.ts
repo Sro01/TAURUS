@@ -143,7 +143,7 @@ export class ReservationService {
     }
 
     // ──────────────────────────────────────
-    // 내 예약 현황 조회 (README 4-2)
+    // 팀 예약 현황 조회 (README 4-2)
     // ──────────────────────────────────────
     async findMyReservations(teamId: string): Promise<ReservationResponseDto[]> {
         const reservations = await this.prisma.reservation.findMany({

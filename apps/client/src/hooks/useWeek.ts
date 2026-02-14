@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { weekService } from '../services';
-import { Week } from '../types';
+import { Week } from '../types/week';
 import { useAsync } from './useAsync';
 
 export function useWeek() {

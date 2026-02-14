@@ -1,139 +1,80 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import dayjs from '../../utils/dayjs';
-import { useAuth, useWeek, useReservation } from '../../hooks';
-import { authService } from '../../services';
-import { PageContainer, Button, EmptyState } from '../../components/common';
-import WeekSelector from '../../components/domain/reservation/WeekSelector';
-import TimeSlotList from '../../components/domain/reservation/TimeSlotList';
-import AuthModal from '../../components/domain/auth/AuthModal';
+import { useAuth } from '../../hooks';
+import { useReservationPage } from '../../hooks/useReservationPage';
+import { useReservationAction } from '../../hooks/useReservationAction';
+import ReservationPageLayout from '../../components/domain/reservation/ReservationPageLayout';
 
 export default function PreReservationPage() {
-  const navigate = useNavigate();
-  const { loginTeam } = useAuth();
+  const { teamName, teamPassword } = useAuth();
   
-  // 훅
-  const { nextWeek } = useWeek();
-  const { 
-    reservations, 
-    getReservations, 
-    createPreReservation 
-  } = useReservation();
+  const {
+    weekData,
+    loading,
+    reservations,
+    selectedDate,
+    handleDateSelect,
+    refreshReservations
+  } = useReservationPage({ weekType: 'next' });
 
-  // 상태
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    isAuthModalOpen,
+    initiateReservation,
+    handleAuthSubmit,
+    closeModal,
+    pendingReservation
+  } = useReservationAction({
+    type: 'PRE',
+    onSuccess: refreshReservations,
+  });
 
-  // 다음 주차 예약 정보 로드
-  useEffect(() => {
-    if (nextWeek && nextWeek.weekNumber !== undefined) {
-      getReservations(nextWeek.weekNumber.toString());
-      // 기본 날짜 선택 (월요일)
-      setSelectedDate(dayjs(nextWeek.startDate).format('YYYY-MM-DD'));
-    } else if (nextWeek) {
-      console.error('Next week is missing weekNumber:', nextWeek);
-    }
-  }, [nextWeek, getReservations]);
-
-  // 날짜 변경 핸들러
-  const handleDateSelect = (date: dayjs.Dayjs) => {
-    setSelectedDate(date.format('YYYY-MM-DD'));
-    setSelectedSlotId(null); // 날짜 변경 시 슬롯 선택 초기화
+  const handleTimeSlotClick = (timeStr: string) => {
+    // timeStr: "09:00" -> HH:mm
+    const [hour, minute] = timeStr.split(':').map(Number);
+    // 미리 예약은 보통 정각 단위로 이루어지므로 minute=0, second=0, millisecond=0
+    // 기존 로직에서도 hour(selectedSlotId).minute(0)...
+    const startTimeResult = dayjs(selectedDate)
+        .hour(hour)
+        .minute(minute)
+        .second(0)
+        .millisecond(0);
+        
+    // 기존 PreReservationPage에서는 toISOString()을 사용
+    initiateReservation(startTimeResult.toISOString());
   };
 
-  // 슬롯 선택 핸들러
-  const handleSlotSelect = (timeStr: string) => {
-    // "09:00" -> 9
-    const hour = parseInt(timeStr.split(':')[0], 10);
-    setSelectedSlotId(hour);
-    setIsAuthModalOpen(true);
-  };
-
-  // 예약 신청 (인증 후 호출됨)
-  const handleReservationSubmit = async (name: string, password: string) => {
-    console.log('handleReservationSubmit called', { name });
-    if (!nextWeek || !selectedDate || selectedSlotId === null) return;
-
-    try {
-      setIsSubmitting(true);
-      
-      // 1. 인증 및 토큰 발급 (자동 가입 옵션 true)
-      const { access_token } = await authService.verify({ name, password, autoRegister: true });
-      loginTeam(access_token);
-
-      // 2. 예약 생성
-      // 밀리초까지 0으로      // 2. 예약 생성
-      // 선택된 날짜(selectedDate) 기준으로 시/분/초 설정
-      const startTime = dayjs(selectedDate).hour(selectedSlotId).minute(0).second(0).millisecond(0);
-      
-      console.log('Sending Pre-Reservation Request:', { 
-        selectedDate,
-        selectedSlotId,
-        calculatedStartTime: startTime.format() 
-      });
-      
-      await createPreReservation({
-        startTime: startTime.toISOString(),
-      });
-
-      alert('예약 신청이 완료되었습니다. (승인 대기)');
-      setIsAuthModalOpen(false);
-      setSelectedSlotId(null);
-      getReservations(nextWeek.weekNumber.toString()); // 목록 갱신
-
-    } catch (error: any) {
-      console.error('Reservation Error:', error);
-      console.log('Error Response:', error.response?.data);
-      alert(error.response?.data?.message || '예약 신청에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (!nextWeek) {
-    return (
-      <PageContainer title="미리 예약">
-        <EmptyState 
-           message="다음 주차(예약 가능 기간) 정보를 불러올 수 없습니다." 
-           action={<Button onClick={() => navigate('/')}>홈으로</Button>}
-        />
-      </PageContainer>
-    );
-  }
-
-  // 선택된 날짜의 예약 목록 필터링
-  const dailyReservations = reservations.filter(res => 
-    dayjs(res.startTime).format('YYYY-MM-DD') === selectedDate
-  );
+  // 모달 표시에 사용할 HH:mm 문자열 추출
+  const selectedTimeStr = pendingReservation 
+    ? dayjs(pendingReservation.startTime).format('HH:mm') 
+    : null;
 
   return (
-    <PageContainer title="미리 예약">
-      <div className="mb-4 bg-primary/10 p-3 rounded-lg text-sm text-primary">
-          <span className="font-bold">Next Week:</span> {nextWeek.weekNumber}주차 
-          ({dayjs(nextWeek.startDate).format('MM.DD')} ~ {dayjs(nextWeek.endDate).format('MM.DD')})
-      </div>
+    <ReservationPageLayout
+      title="미리 예약"
+      weekData={weekData}
+      loading={loading}
+      reservations={reservations}
+      selectedDate={selectedDate}
+      onDateSelect={handleDateSelect}
+      onTimeSlotClick={handleTimeSlotClick}
+      
+      banner={{
+        label: "Next Week",
+        weeks: weekData?.weekNumber || 0,
+        startDate: weekData?.startDate || '',
+        endDate: weekData?.endDate || '',
+        theme: 'yellow'
+      }}
 
-      <WeekSelector 
-        currentWeek={nextWeek}
-        selectedDate={dayjs(selectedDate)}
-        onSelectDate={handleDateSelect}
-      />
-
-      <TimeSlotList 
-        reservations={dailyReservations}
-        onReserve={handleSlotSelect} // TimeSlotList prop name is onReserve
-        selectedDate={dayjs(selectedDate)}
-      />
-
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onSubmit={handleReservationSubmit}
-        title="팀 인증 및 예약 신청"
-        isSubmitting={isSubmitting}
-      />
-    </PageContainer>
+      modalProps={{
+        isOpen: isAuthModalOpen,
+        onClose: closeModal,
+        selectedTime: selectedTimeStr,
+        onSubmit: handleAuthSubmit,
+        teamName,
+        teamPassword,
+        showWaitlist: true,
+        existingReservations: reservations
+      }}
+    />
   );
 }
