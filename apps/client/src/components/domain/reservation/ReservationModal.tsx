@@ -26,7 +26,8 @@ export default function ReservationModal({
   isSubmitting = false,
   teamName = '',
   teamPassword = '',
-}: ReservationModalProps) {
+  showWaitlist = true,
+}: ReservationModalProps & { showWaitlist?: boolean }) {
   // 해당 시간대의 기존 예약 확인 (대기열)
   const pendingTeams = existingReservations
     .filter(r => {
@@ -58,7 +59,7 @@ export default function ReservationModal({
         </div>
 
         {/* 대기열 정보 (있을 경우만) */}
-        {pendingTeams.length > 0 && (
+        {showWaitlist && pendingTeams.length > 0 && (
           <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-primary text-sm font-medium">

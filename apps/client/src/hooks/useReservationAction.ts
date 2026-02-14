@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authService, reservationService } from '../services'; // reservationService includes createPre/createInstant
-import { useAuth } from '../hooks'; // Import from hooks index or direct context
+import { authService, reservationService } from '../services';
+import { useAuth } from '../hooks';
 
 type ReservationType = 'PRE' | 'INSTANT';
 
@@ -11,17 +10,15 @@ interface UseReservationActionProps {
 }
 
 export function useReservationAction({ type, onSuccess }: UseReservationActionProps) {
-    const navigate = useNavigate();
-    const { loginTeam } = useAuth(); // Use loginTeam instead of login
+    const { loginTeam } = useAuth();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [pendingReservation, setPendingReservation] = useState<{
         startTime: string;
-        endTime: string;
     } | null>(null);
 
-    // 1. 예약 버튼 클릭 시 호출 (인증 확인)
-    const initiateReservation = (startTime: string, endTime: string) => {
-        setPendingReservation({ startTime, endTime });
+    // 1. 예약 버튼 클릭 시 호출 (인증 확인을 위한 모달 오픈)
+    const initiateReservation = (startTime: string) => {
+        setPendingReservation({ startTime });
         setIsAuthModalOpen(true);
     };
 
@@ -31,10 +28,19 @@ export function useReservationAction({ type, onSuccess }: UseReservationActionPr
 
         try {
             // 1. 인증 -> returns { access_token, isNewTeam }
-            const { access_token } = await authService.verify({ name: teamName, password });
+            // autoRegister: true 옵션 추가 (페이지 로직과 동일하게)
+            const res = await authService.verify({
+                name: teamName,
+                password,
+                autoRegister: true
+            }) as { access_token: string, isNewTeam?: boolean };
 
-            // 2. 로그인 상태 업데이트 (Team Context)
+            const { access_token, isNewTeam } = res;
+
+            // 2. 로그인 상태 업데이트
             loginTeam(access_token, teamName, password);
+
+            if (isNewTeam) alert('팀 등록이 완료되었습니다!');
 
             // 3. 예약 생성
             if (type === 'PRE') {
@@ -51,11 +57,8 @@ export function useReservationAction({ type, onSuccess }: UseReservationActionPr
 
             setIsAuthModalOpen(false);
             setPendingReservation(null);
+
             if (onSuccess) onSuccess();
-
-            // 예약 후 팀 페이지로 이동 (선택적)
-            navigate('/teams/me');
-
         } catch (error: any) {
             console.error(error);
             const message = error.response?.data?.message || '예약 처리에 실패했습니다.';
@@ -71,6 +74,7 @@ export function useReservationAction({ type, onSuccess }: UseReservationActionPr
         closeModal: () => {
             setIsAuthModalOpen(false);
             setPendingReservation(null);
-        }
+        },
+        pendingReservation
     };
 }
