@@ -1,130 +1,271 @@
-import { Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
+import { Injectable, OnModuleInit, NotFoundException, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { ReservationService } from '../reservation/reservation.service';
 import { WeekResponseDto } from './dto/week-response.dto';
-import { WeekStatus } from '@prisma/client';
+import { Week, WeekStatus, Prisma } from '@prisma/client';
 import dayjs from '../common/utils/dayjs';
+import {
+    DAYS_PER_WEEK,
+    MAX_WEEKS_PER_YEAR,
+    WEEK_START_DAY,
+    WEEK_END_DAY,
+    WEEK_ROTATION_CRON,
+    WEEK_DISPLAY_STANDARD_DAY,
+    TIMEZONE,
+    DAY_NAMES,
+} from '../constants/week.constants';
+
+export interface RotationResult {
+    message: string;
+}
+
+export interface StatusSyncResult {
+    closed: number;
+    open: number;
+    upcoming: number;
+}
 
 @Injectable()
 export class WeekService implements OnModuleInit {
+    private readonly logger = new Logger(WeekService.name);
+
     constructor(
-        private prisma: PrismaService,
-        private reservationService: ReservationService,
+        private readonly prisma: PrismaService,
+        private readonly reservationService: ReservationService,
     ) { }
 
-    async onModuleInit() {
-        // 앱 시작 시 올해 주차 데이터가 없으면 생성
-        await this.ensureWeeksExist();
-        // 현재 시각 기준으로 주차 상태 동기화 (지난 주차 → CLOSED, 현재 주차 → OPEN)
-        await this.syncWeekStatuses();
-    }
+    async onModuleInit(): Promise<void> {
+        this.logger.log('초기화 시작...');
 
-    // 현재 시각 기준으로 주차 상태 자동 동기화
-    private async syncWeekStatuses() {
-        const now = dayjs();
-        const isSundayAfter18 = now.day() === 0 && now.hour() >= 18;
-
-        // 메인 주차의 시작일 계산
-        let mainWeekStart = now.startOf('isoWeek');
-        if (isSundayAfter18) {
-            mainWeekStart = mainWeekStart.add(1, 'week');
-        }
-
-        // 1. 메인 주차 이전의 모든 주차 → CLOSED
-        const closedResult = await this.prisma.week.updateMany({
-            where: {
-                startDate: { lt: mainWeekStart.toDate() },
-                status: { not: WeekStatus.CLOSED },
-            },
-            data: { status: WeekStatus.CLOSED },
-        });
-
-        // 2. 현재 메인 주차 → OPEN
-        const openResult = await this.prisma.week.updateMany({
-            where: {
-                startDate: mainWeekStart.toDate(),
-                status: { not: WeekStatus.OPEN },
-            },
-            data: { status: WeekStatus.OPEN },
-        });
-
-        if (closedResult.count > 0 || openResult.count > 0) {
-            console.log(`Week statuses synced: ${closedResult.count} CLOSED, ${openResult.count} OPEN`);
+        try {
+            await this.ensureWeeksExist();
+            await this.syncWeekStatuses();
+            this.logger.log('초기화 완료');
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.stack || error.message : String(error);
+            this.logger.error('초기화 실패', errorMessage);
+            throw error;
         }
     }
 
-    // 주차 데이터 생성 (현재 연도 내)
-    private async ensureWeeksExist() {
-        const today = dayjs();
-        const currentYear = today.year();
+    // ────────────────────────────────────────────────
+    // 주차 계산 유틸리티
+    // ────────────────────────────────────────────────
 
-        // ISO 8601 기준: 1월 4일이 포함된 주가 1주차
-        const jan4 = dayjs(`${currentYear}-01-04`);
-        let startDate = jan4.startOf('isoWeek');
+    /**
+     * 특정 날짜가 속한 주의 시작일(일요일) 계산
+     * @param date 기준 날짜
+     * @returns 해당 주의 일요일 00:00:00 (locale 독립적)
+     */
+    private getWeekStartDate(date: dayjs.Dayjs): dayjs.Dayjs {
+        const currentDayOfWeek = date.day();
 
-        // 기존 데이터 확인 (1주차 시작일이 다르면 재생성)
-        const week1 = await this.prisma.week.findFirst({
-            where: { weekNumber: 1 }
-        });
-
-        if (week1 && !dayjs(week1.startDate).isSame(startDate, 'day')) {
-            console.log('Detecting incorrect week data based on ISO 8601. Re-generating...');
-            await this.prisma.week.deleteMany({});
+        if (currentDayOfWeek === WEEK_START_DAY) {
+            return date.startOf('day');
         }
 
-        // 이미 데이터가 존재하면 스킵
-        const existingCount = await this.prisma.week.count();
-        if (existingCount > 0) return;
+        const daysFromSunday = currentDayOfWeek - WEEK_START_DAY;
+        return date.subtract(daysFromSunday, 'day').startOf('day');
+    }
 
-        // 53주차까지 한 번에 생성 (createMany 사용)
-        const weeksData: { startDate: Date; endDate: Date; weekNumber: number; status: WeekStatus }[] = [];
-        for (let i = 1; i <= 53; i++) {
-            const endDate = startDate.endOf('isoWeek');
+    /**
+     * 주차 종료일(토요일) 계산
+     * @param weekStartDate 주차 시작일 (일요일)
+     * @returns 토요일 23:59:59
+     */
+    private getWeekEndDate(weekStartDate: dayjs.Dayjs): dayjs.Dayjs {
+        const daysToSaturday = WEEK_END_DAY - WEEK_START_DAY;
+        return weekStartDate.add(daysToSaturday, 'day').endOf('day');
+    }
+
+    /**
+     * 연도의 첫 주차 시작일 계산
+     * @param year 연도
+     * @returns 1월 1일이 속한 주의 일요일
+     */
+    private getFirstWeekStartOfYear(year: number): dayjs.Dayjs {
+        const jan1 = dayjs.tz(`${year}-01-01`, TIMEZONE);
+        return this.getWeekStartDate(jan1);
+    }
+
+    // ────────────────────────────────────────────────
+    // 주차 데이터 관리
+    // ────────────────────────────────────────────────
+
+    /**
+     * 주차 데이터 생성 (존재하지 않을 때만)
+     * 현재 연도와 내년 데이터를 선제적으로 생성하여 연말 전환을 대비합니다.
+     */
+    private async ensureWeeksExist(): Promise<void> {
+        const today = dayjs().tz(TIMEZONE);
+        const yearsToEnsure = [today.year(), today.year() + 1];
+
+        for (const year of yearsToEnsure) {
+            const existingCount = await this.countWeeksByYear(year);
+
+            if (existingCount > 0) {
+                this.logger.log(
+                    `[WeekService] ${year}년 주차 데이터 이미 존재 (${existingCount}개). 생성을 건너뜁니다.`
+                );
+                continue;
+            }
+
+            this.logger.log(`[WeekService] ${year}년 주차 데이터 생성 시작...`);
+
+            const weeksData = this.generateWeeksData(year);
+
+            try {
+                await this.prisma.week.createMany({
+                    data: weeksData,
+                    skipDuplicates: true,
+                });
+
+                this.logger.log(
+                    `[WeekService] ${year}년 주차 ${weeksData.length}개 생성 완료 ` +
+                    `(${DAY_NAMES[WEEK_START_DAY]} 시작)`
+                );
+
+            } catch (error: unknown) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                this.logger.error(
+                    `[WeekService] ${year}년 주차 데이터 생성 중 오류 발생: ${errorMessage}`
+                );
+                throw error;
+            }
+        }
+    }
+
+    /**
+     * 특정 연도의 주차 수 조회
+     */
+    private async countWeeksByYear(year: number): Promise<number> {
+        return this.prisma.week.count({
+            where: { year },
+        });
+    }
+
+    /**
+     * 연도별 주차 데이터 생성 (중복 방지 로직 적용)
+     * "다음 해 1주차 시작일 전"까지만 생성하여 물리적 주차 중복을 차단합니다.
+     */
+    private generateWeeksData(year: number): Prisma.WeekCreateManyInput[] {
+        const week1Start = this.getFirstWeekStartOfYear(year);
+        const nextYearWeek1Start = this.getFirstWeekStartOfYear(year + 1);
+
+        // 해당 연도에 포함되는 물리적 주차 수 계산 (보통 52주, 드물게 53주)
+        const totalWeeks = nextYearWeek1Start.diff(week1Start, 'week');
+
+        const weeksData: Prisma.WeekCreateManyInput[] = [];
+        let currentWeekStart = week1Start;
+
+        for (let weekNumber = 1; weekNumber <= totalWeeks; weekNumber++) {
+            const weekEndDate = this.getWeekEndDate(currentWeekStart);
+
             weeksData.push({
-                startDate: startDate.toDate(),
-                endDate: endDate.toDate(),
-                weekNumber: i,
+                startDate: currentWeekStart.toDate(),
+                endDate: weekEndDate.toDate(),
+                year,
+                weekNumber,
                 status: WeekStatus.UPCOMING,
             });
-            startDate = startDate.add(1, 'week');
+
+            currentWeekStart = currentWeekStart.add(DAYS_PER_WEEK, 'day');
         }
 
-        await this.prisma.week.createMany({ data: weeksData });
-        console.log(`Created ${weeksData.length} weeks for year ${currentYear} (ISO 8601)`);
+        return weeksData;
     }
 
-    // 메인 주차 정보 조회 (이번 주 & 다음 주)
-    async getMainWeeks(): Promise<{ main: WeekResponseDto, next: WeekResponseDto }> {
-        const now = dayjs();
-        const isSundayAfter18 = now.day() === 0 && now.hour() >= 18;
+    /**
+     * 주차 상태 동기화
+     */
+    private async syncWeekStatuses(): Promise<StatusSyncResult> {
+        const now = dayjs().tz(TIMEZONE);
+        const currentWeekStart = this.getWeekStartDate(now);
+        const nextWeekStart = currentWeekStart.add(DAYS_PER_WEEK, 'day');
 
-        // 현재 달력상 이번 주
-        let currentCalendarWeekStart = now.startOf('isoWeek');
+        // 트랜잭션 수행 (PrismaPromise 배열 전달)
+        const [closedResult, openResult, upcomingResult] = await this.prisma.$transaction([
+            this.prisma.week.updateMany({
+                where: {
+                    startDate: { lt: currentWeekStart.toDate() },
+                    status: { not: WeekStatus.CLOSED },
+                },
+                data: { status: WeekStatus.CLOSED },
+            }),
+            this.prisma.week.updateMany({
+                where: {
+                    startDate: {
+                        gte: currentWeekStart.toDate(),
+                        lt: nextWeekStart.toDate(),
+                    },
+                    status: { not: WeekStatus.OPEN },
+                },
+                data: { status: WeekStatus.OPEN },
+            }),
+            this.prisma.week.updateMany({
+                where: {
+                    startDate: { gte: nextWeekStart.toDate() },
+                    status: { not: WeekStatus.UPCOMING },
+                },
+                data: { status: WeekStatus.UPCOMING },
+            }),
+        ]);
 
-        // 로직: 일요일 18시 이후면 '다음 주'가 '메인 주차'가 됨
-        let mainWeekStart = currentCalendarWeekStart;
-        if (isSundayAfter18) {
-            mainWeekStart = mainWeekStart.add(1, 'week');
+        const result = {
+            closed: closedResult.count,
+            open: openResult.count,
+            upcoming: upcomingResult.count,
+        };
+
+        if (result.closed > 0 || result.open > 0 || result.upcoming > 0) {
+            this.logger.log(
+                `상태 동기화: ${result.closed} CLOSED, ` +
+                `${result.open} OPEN, ${result.upcoming} UPCOMING`
+            );
         }
 
-        const nextWeekStart = mainWeekStart.add(1, 'week');
+        return result;
+    }
 
-        // DB 조회
-        // 1. 메인 주차
-        const mainWeek = await this.prisma.week.findFirst({
-            where: { startDate: mainWeekStart.toDate() }
+    /**
+     * 주차 상태 일괄 업데이트
+     */
+    private async updateWeeksStatus(
+        where: Prisma.WeekWhereInput,
+        targetStatus: WeekStatus
+    ): Promise<{ count: number }> {
+        return this.prisma.week.updateMany({
+            where: {
+                ...where,
+                status: { not: targetStatus },
+            },
+            data: { status: targetStatus },
         });
+    }
 
-        // 2. 다음 주차
-        const nextWeek = await this.prisma.week.findFirst({
-            where: { startDate: nextWeekStart.toDate() }
-        });
+    // ────────────────────────────────────────────────
+    // 공개 API
+    // ────────────────────────────────────────────────
+
+    /**
+     * 메인 주차 정보 조회 (이번 주 & 다음 주)
+     */
+    async getMainWeeks(): Promise<{
+        main: WeekResponseDto;
+        next: WeekResponseDto;
+    }> {
+        const now = dayjs().tz(TIMEZONE);
+        const mainWeekStart = this.getWeekStartDate(now);
+        const nextWeekStart = mainWeekStart.add(DAYS_PER_WEEK, 'day');
+
+        const [mainWeek, nextWeek] = await Promise.all([
+            this.findWeekByStartDate(mainWeekStart),
+            this.findWeekByStartDate(nextWeekStart),
+        ]);
 
         if (!mainWeek || !nextWeek) {
-            // 데이터가 없으면 생성 후 재호출 (엣지 케이스)
-            await this.ensureWeeksExist();
-            throw new NotFoundException('주차 정보를 찾을 수 없습니다. (데이터 생성 중일 수 있음)');
+            throw new NotFoundException('주차 정보를 찾을 수 없습니다.');
         }
 
         return {
@@ -133,29 +274,78 @@ export class WeekService implements OnModuleInit {
         };
     }
 
-    // 전체 주차 목록 조회 (Admin)
+    /**
+     * 특정 날짜가 속한 주차 찾기
+     */
+    async getWeekByDate(date: dayjs.Dayjs): Promise<Week> {
+        const weekStart = this.getWeekStartDate(date);
+        const week = await this.findWeekByStartDate(weekStart);
+
+        if (!week) {
+            throw new NotFoundException(
+                `${date.format('YYYY-MM-DD')}에 해당하는 주차를 찾을 수 없습니다.`
+            );
+        }
+
+        return week;
+    }
+
+    /**
+     * 시작일로 주차 찾기
+     */
+    private async findWeekByStartDate(startDate: dayjs.Dayjs): Promise<Week | null> {
+        return this.prisma.week.findFirst({
+            where: {
+                startDate: {
+                    gte: startDate.toDate(),
+                    lt: startDate.add(1, 'day').toDate(),
+                },
+            },
+        });
+    }
+
+    /**
+     * 전체 주차 목록 조회
+     */
     async findAll(): Promise<WeekResponseDto[]> {
         const weeks = await this.prisma.week.findMany({
-            orderBy: { startDate: 'asc' }
+            orderBy: { startDate: 'asc' },
         });
-        return weeks.map(w => this.toDto(w));
+
+        return weeks.map(week => this.toDto(week));
     }
 
-    // ──────────────────────────────────────
-    // Cron: 매주 일요일 18:00 자동 주차 전환
-    // ──────────────────────────────────────
-    @Cron('0 18 * * 0')
-    async handleWeekRotation() {
-        console.log('[Cron] 주차 자동 전환 시작...');
-        const result = await this.rotation();
-        console.log(`[Cron] 주차 전환 완료: ${result.message}`);
+    // ────────────────────────────────────────────────
+    // 주차 전환
+    // ────────────────────────────────────────────────
+
+    /**
+     * Cron: 설정된 시각에 주차 전환
+     */
+    @Cron(WEEK_ROTATION_CRON, { timeZone: TIMEZONE })
+    async handleWeekRotation(): Promise<void> {
+        this.logger.log(
+            `주차 자동 전환 시작 (${DAY_NAMES[WEEK_START_DAY]} ` +
+            `${String(0).padStart(2, '0')}:${String(0).padStart(2, '0')} ${TIMEZONE})`
+        );
+
+        try {
+            const result = await this.rotation();
+            this.logger.log(`주차 전환 완료: ${result.message}`);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.stack || error.message : String(error);
+            this.logger.error('주차 전환 실패', errorMessage);
+            throw error;
+        }
     }
 
-    // 주차 전환 (Cron 또는 수동 호출)
-    async rotation() {
-        const { main, next } = await this.getMainWeeks();
+    /**
+     * 주차 전환 로직 (Cron 또는 수동 호출)
+     */
+    async rotation(): Promise<RotationResult> {
+        const { main } = await this.getMainWeeks();
 
-        // 1. 이전 주차들을 CLOSED로 변경
+        // 과거 주차 CLOSED 처리
         await this.prisma.week.updateMany({
             where: {
                 startDate: { lt: main.startDate },
@@ -164,38 +354,83 @@ export class WeekService implements OnModuleInit {
             data: { status: WeekStatus.CLOSED },
         });
 
-        // 2. 메인 주차를 OPEN으로 설정
+        // 현재 주차 OPEN 처리
         await this.prisma.week.update({
             where: { id: main.id },
             data: { status: WeekStatus.OPEN },
         });
 
-        // 3. PENDING 예약 집계 (1팀→CONFIRMED, 2팀+→VOID)
+        // PENDING 예약 집계
         const rotationResult = await this.reservationService.processRotation(main.id);
-        console.log(`[Rotation] PENDING 집계: ${rotationResult.confirmed} 확정, ${rotationResult.voided} 폭파`);
+
+        this.logger.log(
+            `PENDING 집계 완료: ${rotationResult.confirmed}건 확정, ` +
+            `${rotationResult.voided}건 폭파`
+        );
 
         return {
-            message: `Week ${main.weekNumber} is now OPEN. Previous weeks are CLOSED. (${rotationResult.confirmed} confirmed, ${rotationResult.voided} voided)`,
+            message:
+                `${main.year}년 ${main.weekNumber}주차 OPEN ` +
+                `(${rotationResult.confirmed} 확정, ${rotationResult.voided} 폭파)`,
         };
     }
-    private toDto(week: any): WeekResponseDto {
-        // "N월 N주차" 표기 계산
-        // ISO 8601 기준: 그 주의 목요일이 속한 달 + 그 달의 몇 번째 주인지
-        const thursday = dayjs(week.startDate).add(3, 'day');
-        const month = thursday.month() + 1;
 
-        const firstDayOfMonth = thursday.startOf('month');
+    // ────────────────────────────────────────────────
+    // DTO 변환
+    // ────────────────────────────────────────────────
 
-        // 해당 월의 첫 번째 목요일 찾기
-        let firstThursday = firstDayOfMonth;
-        while (firstThursday.isoWeekday() !== 4) {
-            firstThursday = firstThursday.add(1, 'day');
+    /**
+     * Week 엔티티를 DTO로 변환
+     * "N월 N주차" 표기 계산 (설정된 기준 요일 기준)
+     */
+    private toDto(week: Week): WeekResponseDto {
+        const displayName = this.calculateDisplayName(week.startDate);
+        return new WeekResponseDto(week, displayName);
+    }
+
+    /**
+     * "N월 N주차" 표기 계산
+     * @param weekStartDate 주차 시작일 (일요일)
+     * @returns "N월 N주차" 형식
+     */
+    private calculateDisplayName(weekStartDate: Date): string {
+        // 기준 요일 (예: 수요일) 날짜 계산
+        const standardDay = dayjs(weekStartDate).add(
+            WEEK_DISPLAY_STANDARD_DAY - WEEK_START_DAY,
+            'day'
+        );
+        const month = standardDay.month() + 1;
+
+        // 해당 월의 첫 번째 기준 요일 찾기
+        const firstDayOfMonth = standardDay.startOf('month');
+        const firstStandardDay = this.findFirstDayOfWeek(
+            firstDayOfMonth,
+            WEEK_DISPLAY_STANDARD_DAY
+        );
+
+        // 주차 계산
+        const daysDiff = standardDay.diff(firstStandardDay, 'day');
+        const weekOfMonth = Math.floor(daysDiff / DAYS_PER_WEEK) + 1;
+
+        return `${month}월 ${weekOfMonth}주차`;
+    }
+
+    /**
+     * 특정 월에서 첫 번째 특정 요일 찾기
+     * @param startDate 시작 날짜
+     * @param targetDayOfWeek 찾을 요일 (0=일, 1=월, ...)
+     * @returns 첫 번째 해당 요일
+     */
+    private findFirstDayOfWeek(
+        startDate: dayjs.Dayjs,
+        targetDayOfWeek: number
+    ): dayjs.Dayjs {
+        let date = startDate;
+
+        while (date.day() !== targetDayOfWeek) {
+            date = date.add(1, 'day');
         }
 
-        // 현재 주의 목요일과 첫 목요일의 주 차이 = N주차
-        const weekOfMonth = Math.floor(thursday.diff(firstThursday, 'day') / 7) + 1;
-        const displayName = `${month}월 ${weekOfMonth}주차`;
-
-        return new WeekResponseDto(week, displayName);
+        return date;
     }
 }

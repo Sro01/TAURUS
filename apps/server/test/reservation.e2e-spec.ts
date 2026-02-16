@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, cleanupTestData, TEST_PREFIX } from './setup-e2e';
-import { createTestTeam, getTeamToken, getFutureSlotTime } from './helpers/test.helper';
+import { createTestTeam, getTeamToken, getFutureTimeSlot } from './helpers/test.helper';
 
 describe('Reservation 모듈 (E2E)', () => {
     let app: INestApplication;
@@ -27,7 +27,7 @@ describe('Reservation 모듈 (E2E)', () => {
             const res = await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${team1Token}`)
-                .send({ startTime: getFutureSlotTime(1, 10) });
+                .send({ startTime: getFutureTimeSlot(1, 10) });
 
             // 주차가 없을 수 있으므로 201 또는 404 허용
             if (res.status === 201) {
@@ -40,20 +40,20 @@ describe('Reservation 모듈 (E2E)', () => {
         });
 
         it('R-2: 이미 예약된 슬롯에 중복 예약 → 409', async () => {
-            const slotTime = getFutureSlotTime(1, 11);
+            const TimeSlot = getFutureTimeSlot(1, 11);
 
             // 첫 번째 예약
             const first = await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${team1Token}`)
-                .send({ startTime: slotTime });
+                .send({ startTime: TimeSlot });
 
             if (first.status === 201) {
                 // 같은 슬롯 중복 예약 시도
                 const second = await request(app.getHttpServer())
                     .post('/reservations/instant')
                     .set('Authorization', `Bearer ${team2Token}`)
-                    .send({ startTime: slotTime });
+                    .send({ startTime: TimeSlot });
                 expect(second.status).toBe(409);
             }
         });
@@ -67,7 +67,7 @@ describe('Reservation 모듈 (E2E)', () => {
         });
 
         it('R-4: 비정각 시간 예약 (10:30) → 400', async () => {
-            const nonHour = getFutureSlotTime(1, 10).replace('T10:00', 'T10:30');
+            const nonHour = getFutureTimeSlot(1, 10).replace('T10:00', 'T10:30');
             const res = await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${team1Token}`)
@@ -79,14 +79,14 @@ describe('Reservation 모듈 (E2E)', () => {
             const res = await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${team1Token}`)
-                .send({ startTime: getFutureSlotTime(1, 8) });
+                .send({ startTime: getFutureTimeSlot(1, 8) });
             expect(res.status).toBe(400);
         });
 
         it('R-9: 인증 없이 바로 예약 → 401', async () => {
             const res = await request(app.getHttpServer())
                 .post('/reservations/instant')
-                .send({ startTime: getFutureSlotTime(1, 10) });
+                .send({ startTime: getFutureTimeSlot(1, 10) });
             expect(res.status).toBe(401);
         });
     });
@@ -97,7 +97,7 @@ describe('Reservation 모듈 (E2E)', () => {
             const res = await request(app.getHttpServer())
                 .post('/reservations/pre')
                 .set('Authorization', `Bearer ${team1Token}`)
-                .send({ startTime: getFutureSlotTime(7, 14) });
+                .send({ startTime: getFutureTimeSlot(7, 14) });
 
             if (res.status === 201) {
                 const data = res.body.data ?? res.body;
@@ -109,35 +109,35 @@ describe('Reservation 모듈 (E2E)', () => {
         });
 
         it('R-11: 같은 슬롯 중복 미리 예약 (같은 팀) → 409', async () => {
-            const slotTime = getFutureSlotTime(7, 15);
+            const TimeSlot = getFutureTimeSlot(7, 15);
 
             const first = await request(app.getHttpServer())
                 .post('/reservations/pre')
                 .set('Authorization', `Bearer ${team1Token}`)
-                .send({ startTime: slotTime });
+                .send({ startTime: TimeSlot });
 
             if (first.status === 201) {
                 const second = await request(app.getHttpServer())
                     .post('/reservations/pre')
                     .set('Authorization', `Bearer ${team1Token}`)
-                    .send({ startTime: slotTime });
+                    .send({ startTime: TimeSlot });
                 expect(second.status).toBe(409);
             }
         });
 
         it('R-12: 같은 슬롯 미리 예약 (다른 팀) → 201 허용', async () => {
-            const slotTime = getFutureSlotTime(7, 16);
+            const TimeSlot = getFutureTimeSlot(7, 16);
 
             const first = await request(app.getHttpServer())
                 .post('/reservations/pre')
                 .set('Authorization', `Bearer ${team1Token}`)
-                .send({ startTime: slotTime });
+                .send({ startTime: TimeSlot });
 
             if (first.status === 201) {
                 const second = await request(app.getHttpServer())
                     .post('/reservations/pre')
                     .set('Authorization', `Bearer ${team2Token}`)
-                    .send({ startTime: slotTime });
+                    .send({ startTime: TimeSlot });
                 expect(second.status).toBe(201);
             }
         });
@@ -164,7 +164,7 @@ describe('Reservation 모듈 (E2E)', () => {
             await request(app.getHttpServer())
                 .post('/reservations/pre')
                 .set('Authorization', `Bearer ${team1Token}`)
-                .send({ startTime: getFutureSlotTime(7, 10) });
+                .send({ startTime: getFutureTimeSlot(7, 10) });
 
             const res = await request(app.getHttpServer())
                 .get('/reservations/week/next');
@@ -198,7 +198,7 @@ describe('Reservation 모듈 (E2E)', () => {
             const create = await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${team1Token}`)
-                .send({ startTime: getFutureSlotTime(1, 12) });
+                .send({ startTime: getFutureTimeSlot(1, 12) });
 
             if (create.status === 201) {
                 const id = (create.body.data ?? create.body).id;
@@ -213,7 +213,7 @@ describe('Reservation 모듈 (E2E)', () => {
             const create = await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${team1Token}`)
-                .send({ startTime: getFutureSlotTime(1, 13) });
+                .send({ startTime: getFutureTimeSlot(1, 13) });
 
             if (create.status === 201) {
                 const id = (create.body.data ?? create.body).id;

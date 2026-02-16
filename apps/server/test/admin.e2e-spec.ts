@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, cleanupTestData, TEST_PREFIX } from './setup-e2e';
-import { getAdminToken, createTestTeam, getFutureSlotTime } from './helpers/test.helper';
+import { getAdminToken, createTestTeam, getFutureTimeSlot } from './helpers/test.helper';
 
 describe('Admin 모듈 (E2E)', () => {
     let app: INestApplication;
@@ -80,7 +80,7 @@ describe('Admin 모듈 (E2E)', () => {
             const res = await request(app.getHttpServer())
                 .post('/admin/reservations')
                 .set('Authorization', `Bearer ${adminToken}`)
-                .send({ startTime: getFutureSlotTime(1, 20), description: '테스트 메모' });
+                .send({ startTime: getFutureTimeSlot(1, 20), description: '테스트 메모' });
 
             if (res.status === 201) {
                 const data = res.body.data ?? res.body;
@@ -102,7 +102,7 @@ describe('Admin 모듈 (E2E)', () => {
             const create = await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${teamToken}`)
-                .send({ startTime: getFutureSlotTime(1, 17) });
+                .send({ startTime: getFutureTimeSlot(1, 17) });
 
             if (create.status === 201) {
                 const id = (create.body.data ?? create.body).id;
@@ -155,7 +155,7 @@ describe('Admin 모듈 (E2E)', () => {
             await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${token}`)
-                .send({ startTime: getFutureSlotTime(1, 10) });
+                .send({ startTime: getFutureTimeSlot(1, 10) });
 
             // 팀 ID 가져오기
             const teamRes = await request(app.getHttpServer())
