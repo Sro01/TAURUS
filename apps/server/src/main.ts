@@ -10,8 +10,12 @@ import { HttpAdapterHost } from '@nestjs/core';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const allowedOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',')  // 쉼표로 구분된 여러 도메인
+    : ['http://localhost:5173'];          // 로컬 개발 기본값
+
   app.enableCors({
-    origin: true,
+    origin: allowedOrigins,
     credentials: true,
   });
 
