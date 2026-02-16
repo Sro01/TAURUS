@@ -9,7 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateInstantReservationDto } from './dto/create-instant-reservation.dto';
 import { CreatePreReservationDto } from './dto/create-pre-reservation.dto';
 import { ReservationResponseDto } from './dto/reservation-response.dto';
-import { ReservationStatus, ReservationType, WeekStatus } from '@prisma/client';
+import { ReservationStatus, ReservationType, WeekStatus, Prisma } from '@prisma/client';
 import dayjs from '../common/utils/dayjs';
 import {
     KST,
@@ -35,64 +35,75 @@ export class ReservationService {
         const endTime = startTime.add(SLOT_DURATION_MIN, 'minute');
 
         // 1. 슬롯 유효성 검증
-        this.validateSlotTime(startTime);
+        this.validateTimeSlot(startTime);
 
-        return await this.prisma.$transaction(async (transaction) => {
-            // 2. startTime이 속한 주차 자동 매칭 (OPEN 상태만)
-            const week = await transaction.week.findFirst({
-                where: {
-                    startDate: { lte: startTime.toDate() },
-                    endDate: { gte: startTime.toDate() },
+        try {
+            return await this.prisma.$transaction(
+                async (transaction) => {
+                    // 2. startTime이 속한 주차 자동 매칭 (OPEN 상태만)
+                    const week = await transaction.week.findFirst({
+                        where: {
+                            startDate: { lte: startTime.toDate() },
+                            endDate: { gte: startTime.toDate() },
+                        },
+                    });
+                    if (!week) throw new NotFoundException('해당 날짜에 대응하는 주차가 없습니다.');
+                    if (week.status !== WeekStatus.OPEN) {
+                        throw new BadRequestException('바로 예약은 현재 OPEN 상태인 주차에서만 가능합니다.');
+                    }
+
+                    // 3. 해당 슬롯에 이미 확정된 예약이 없는지 확인 (선착순 중복 방지)
+                    const existingConfirmed = await transaction.reservation.findFirst({
+                        where: {
+                            startTime: startTime.toDate(),
+                            weekId: week.id,
+                            status: { in: [ReservationStatus.CONFIRMED, ReservationStatus.CONFIRMED_ADMIN] },
+                        },
+                    });
+                    if (existingConfirmed) {
+                        throw new ConflictException('이미 예약된 시간대입니다.');
+                    }
+
+                    // 4. 예약 제한 체크
+                    await this.checkMaxSlots(teamId, week.id, transaction);
+                    await this.checkDailyMaxSlots(teamId, startTime, transaction);
+
+                    // 5. 예약 생성 (즉시 CONFIRMED)
+                    const reservation = await transaction.reservation.create({
+                        data: {
+                            startTime: startTime.toDate(),
+                            endTime: endTime.toDate(),
+                            status: ReservationStatus.CONFIRMED,
+                            type: ReservationType.INSTANT,
+                            teamId,
+                            weekId: week.id,
+                        },
+                        include: { team: { select: { name: true } } },
+                    });
+
+                    return new ReservationResponseDto(reservation, true);
                 },
-            });
-            if (!week) throw new NotFoundException('해당 날짜에 대응하는 주차가 없습니다.');
-            if (week.status !== WeekStatus.OPEN) {
-                throw new BadRequestException('바로 예약은 현재 OPEN 상태인 주차에서만 가능합니다.');
+                { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+            );
+        } catch (error: any) {
+            // Serializable 격리 수준에서 발생하는 동시성 충돌(40001/P2034) 처리
+            if (error.code === 'P2034' || error.message?.includes('serialization failure')) {
+                throw new ConflictException('이미 예약된 시간대입니다. (동시성 요청 충돌)');
             }
-
-            // 3. 해당 슬롯에 이미 확정된 예약이 없는지 확인 (선착순 중복 방지)
-            const existingConfirmed = await transaction.reservation.findFirst({
-                where: {
-                    startTime: startTime.toDate(),
-                    weekId: week.id,
-                    status: { in: [ReservationStatus.CONFIRMED, ReservationStatus.CONFIRMED_ADMIN] },
-                },
-            });
-            if (existingConfirmed) {
-                throw new ConflictException('이미 예약된 시간대입니다.');
-            }
-
-            // 4. 예약 제한 체크
-            await this.checkMaxSlots(teamId, week.id, transaction);
-            await this.checkDailyMaxSlots(teamId, startTime, transaction);
-
-            // 5. 예약 생성 (즉시 CONFIRMED)
-            const reservation = await transaction.reservation.create({
-                data: {
-                    startTime: startTime.toDate(),
-                    endTime: endTime.toDate(),
-                    status: ReservationStatus.CONFIRMED,
-                    type: ReservationType.INSTANT,
-                    teamId,
-                    weekId: week.id,
-                },
-                include: { team: { select: { name: true } } },
-            });
-
-            return new ReservationResponseDto(reservation, true);
-        });
+            throw error;
+        }
     }
 
     // ──────────────────────────────────────
     // 미리 예약 (README 3번)
-    // 자유 신청, PENDING 상태
+    // 하나의 타임 슬롯을 여러 팀이 예약 가능, PENDING 상태
     // ──────────────────────────────────────
     async createPre(teamId: string, dto: CreatePreReservationDto): Promise<ReservationResponseDto> {
         const startTime = dayjs(dto.startTime);
         const endTime = startTime.add(SLOT_DURATION_MIN, 'minute');
 
         // 1. 슬롯 유효성 검증
-        this.validateSlotTime(startTime);
+        this.validateTimeSlot(startTime);
 
         return await this.prisma.$transaction(async (transaction) => {
             // 2. startTime이 속한 주차 자동 매칭 (UPCOMING 상태만)
@@ -139,7 +150,9 @@ export class ReservationService {
 
             // 미리 예약은 팀명 비공개
             return new ReservationResponseDto(reservation, false);
-        });
+        },
+            { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+        );
     }
 
     // ──────────────────────────────────────
@@ -262,7 +275,7 @@ export class ReservationService {
     // ──────────────────────────────────────
     // 공통: 슬롯 시간 유효성 검증 (KST 기준)
     // ──────────────────────────────────────
-    private validateSlotTime(startTime: dayjs.Dayjs) {
+    private validateTimeSlot(startTime: dayjs.Dayjs) {
         const now = dayjs();
 
         // 과거 시간 체크
@@ -288,7 +301,7 @@ export class ReservationService {
     // ──────────────────────────────────────
     // 공통: MaxSlotsPerWeek 체크
     // ──────────────────────────────────────
-    private async checkMaxSlots(teamId: string, weekId: number, tx?: PrismaService | any) {
+    private async checkMaxSlots(teamId: string, weekId: number, tx?: Prisma.TransactionClient) {
         const client = tx || this.prisma;
         const maxSlots = await this.getMaxSlotsPerWeek(client);
 
@@ -307,7 +320,7 @@ export class ReservationService {
         }
     }
 
-    private async getMaxSlotsPerWeek(tx?: PrismaService | any): Promise<number> {
+    private async getMaxSlotsPerWeek(tx?: Prisma.TransactionClient): Promise<number> {
         const client = tx || this.prisma;
         const config = await client.systemConfig.findUnique({
             where: { key: CONFIG_KEY_MAX_SLOTS_PER_WEEK },
@@ -318,7 +331,7 @@ export class ReservationService {
     // ──────────────────────────────────────
     // 공통: MaxSlotsPerDay 체크
     // ──────────────────────────────────────
-    private async checkDailyMaxSlots(teamId: string, startTime: dayjs.Dayjs, tx?: PrismaService | any) {
+    private async checkDailyMaxSlots(teamId: string, startTime: dayjs.Dayjs, tx?: Prisma.TransactionClient) {
         const client = tx || this.prisma;
         const maxSlotsPerDay = await this.getMaxSlotsPerDay(client);
 
@@ -343,7 +356,7 @@ export class ReservationService {
         }
     }
 
-    private async getMaxSlotsPerDay(tx?: PrismaService | any): Promise<number> {
+    private async getMaxSlotsPerDay(tx?: Prisma.TransactionClient): Promise<number> {
         const client = tx || this.prisma;
         const config = await client.systemConfig.findUnique({
             where: { key: CONFIG_KEY_MAX_SLOTS_PER_DAY },
@@ -370,13 +383,13 @@ export class ReservationService {
             return week;
         }
 
-        const weekNumber = parseInt(weekParam, 10);
-        if (isNaN(weekNumber)) {
+        const weekId = parseInt(weekParam, 10);
+        if (isNaN(weekId)) {
             throw new BadRequestException('"current", "next", 또는 주차번호(숫자)를 입력해주세요.');
         }
 
-        const week = await this.prisma.week.findFirst({ where: { weekNumber } });
-        if (!week) throw new NotFoundException(`${weekNumber}주차를 찾을 수 없습니다.`);
+        const week = await this.prisma.week.findFirst({ where: { id: weekId } });
+        if (!week) throw new NotFoundException(`${weekId}주차를 찾을 수 없습니다.`);
         return week;
     }
 }

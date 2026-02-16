@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, cleanupTestData, TEST_PREFIX } from './setup-e2e';
-import { getAdminToken, createTestTeam, getTeamToken, getFutureSlotTime } from './helpers/test.helper';
+import { getAdminToken, createTestTeam, getTeamToken, getFutureTimeSlot } from './helpers/test.helper';
 
 describe('교차 모듈 엣지 케이스 (E2E)', () => {
     let app: INestApplication;
@@ -46,13 +46,13 @@ describe('교차 모듈 엣지 케이스 (E2E)', () => {
             const r1 = await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${token1}`)
-                .send({ startTime: getFutureSlotTime(1, 18) });
+                .send({ startTime: getFutureTimeSlot(1, 18) });
 
             // 팀2 예약 시도 (다른 슬롯)
             const r2 = await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${token2}`)
-                .send({ startTime: getFutureSlotTime(1, 19) });
+                .send({ startTime: getFutureTimeSlot(1, 19) });
 
             // 예약이 성공한 경우에만 격리 검증
             if (r1.status === 201 && r2.status === 201) {
@@ -88,14 +88,14 @@ describe('교차 모듈 엣지 케이스 (E2E)', () => {
             const r1 = await request(app.getHttpServer())
                 .post('/reservations/instant')
                 .set('Authorization', `Bearer ${token}`)
-                .send({ startTime: getFutureSlotTime(1, 14) });
+                .send({ startTime: getFutureTimeSlot(1, 14) });
 
             if (r1.status === 201) {
                 // 같은 날 두 번째 예약 → maxSlotsPerDay 제한 초과
                 const r2 = await request(app.getHttpServer())
                     .post('/reservations/instant')
                     .set('Authorization', `Bearer ${token}`)
-                    .send({ startTime: getFutureSlotTime(1, 15) });
+                    .send({ startTime: getFutureTimeSlot(1, 15) });
                 // 일일 제한 또는 슬롯 중복으로 실패해야 함
                 expect([400, 409]).toContain(r2.status);
             }
@@ -129,10 +129,10 @@ describe('교차 모듈 엣지 케이스 (E2E)', () => {
         it('E-11: 동시성 테스트 - 동일 슬롯 동시 예약 시 하나만 성공', async () => {
             const { token: t1 } = await createTestTeam(app, 'race_t1');
             const { token: t2 } = await createTestTeam(app, 'race_t2');
-            const targetTime = getFutureSlotTime(2, 10); // 2주 뒤(Week OPEN 가정, 10시)
+            const targetTime = getFutureTimeSlot(2, 10); // 2주 뒤(Week OPEN 가정, 10시)
 
             // Week status를 OPEN으로 확보 (기존 로직이 Week를 생성한다고 가정하거나, 필요 시 생성 로직 추가)
-            // 여기서는 getFutureSlotTime이 유효한 시간을 준다고 가정하고 진행.
+            // 여기서는 getFutureTimeSlot이 유효한 시간을 준다고 가정하고 진행.
             // 만약 실패한다면 setUp에서 Week를 OPEN으로 만들어야 함.
 
             // Promise.all로 동시에 요청 전송

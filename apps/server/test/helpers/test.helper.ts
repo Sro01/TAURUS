@@ -57,7 +57,7 @@ export async function createTestTeam(
  * OPEN 주차의 유효한 미래 슬롯 시간 생성 (KST 기준)
  * - 내일 이후 정각 시간 반환
  */
-export function getFutureSlotTime(daysFromNow = 1, hour = 10): string {
+export function getFutureTimeSlot(daysFromNow = 1, hour = 10): string {
     return dayjs()
         .tz(KST)
         .add(daysFromNow, 'day')

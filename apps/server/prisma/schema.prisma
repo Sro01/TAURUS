@@ -51,8 +51,8 @@ model Team {
   password    String   // 해시된 비밀번호
   role        Role     @default(USER)
   tokenVersion Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @db.Timestamptz 
+  updatedAt   DateTime @updatedAt @db.Timestamptz
 
   reservations Reservation[]
 
@@ -61,21 +61,25 @@ model Team {
 
 model Week {
   id         Int        @id @default(autoincrement())
-  startDate  DateTime   // 해당 주차 월요일 00:00
-  endDate    DateTime   // 해당 주차 일요일 23:59
+  startDate  DateTime   @unique @db.Timestamptz // 일요일 00:00:00 KST
+  endDate    DateTime   @db.Timestamptz // 토요일 23:59:59 KST
   status     WeekStatus @default(UPCOMING)
+  year       Int        // 연도
   weekNumber Int        // 연도 내 주차 번호 (1~52)
 
   reservations Reservation[]
 
-  @@index([startDate, endDate])
+  @@unique([year, weekNumber]) // 같은 연도에 같은 weekNumber 중복 방지
+
+  @@index([status])  // OPEN/UPCOMING 조회
+  @@index([year])    // 연도별 조회
   @@map("weeks")
 }
 
 model Reservation {
   id        String            @id @default(uuid())
-  startTime DateTime          // 슬롯 시작 시간
-  endTime   DateTime          // 슬롯 종료 시간 (시작 + 50분)
+  startTime DateTime          @db.Timestamptz // 슬롯 시작 시간
+  endTime   DateTime          @db.Timestamptz // 슬롯 종료 시간 (시작 + 50분)
   status    ReservationStatus @default(PENDING)
   type      ReservationType   @default(INSTANT)
   description String?           // 관리자 예약 등의 메모 (nullable)
@@ -86,8 +90,8 @@ model Reservation {
   weekId Int
   week   Week @relation(fields: [weekId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
 
   @@index([startTime])
   @@index([teamId])

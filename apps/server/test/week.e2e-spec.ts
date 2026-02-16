@@ -11,8 +11,10 @@ describe('Week 모듈 (E2E)', () => {
     });
 
     afterAll(async () => {
-        await cleanupTestData(app);
-        await app.close();
+        if (app) {
+            await cleanupTestData(app);
+            await app.close();
+        }
     });
 
     describe('GET /weeks/main', () => {

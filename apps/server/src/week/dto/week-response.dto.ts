@@ -25,6 +25,9 @@ export class WeekResponseDto {
     @ApiProperty()
     weekNumber!: number;
 
+    @ApiProperty({ description: '연도' })
+    year!: number;
+
     @ApiProperty({ description: '표기용 주차 (예: 1월 1주차)' })
     displayName!: string;
 
@@ -34,6 +37,7 @@ export class WeekResponseDto {
         this.endDate = dayjs(week.endDate).tz(KST).format();
         this.status = week.status;
         this.weekNumber = week.weekNumber;
+        this.year = week.year;
         this.displayName = displayName;
     }
 }
