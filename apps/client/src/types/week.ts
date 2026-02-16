@@ -11,6 +11,7 @@ export interface Week {
     id: number;
     startDate: string;
     endDate: string;
+    year: number;
     weekNumber: number;
     status: WeekStatus;
     displayName: string; // "2월 3주차" 등

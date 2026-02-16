@@ -24,9 +24,9 @@ export function useReservationPage({ weekType }: UseReservationPageProps) {
 
     // 주차 정보 로드 시 초기 데이터 설정
     useEffect(() => {
-        if (targetWeek && targetWeek.weekNumber !== undefined) {
+        if (targetWeek && targetWeek.id !== undefined) {
             // 해당 주차 예약 정보 로드
-            getReservations(targetWeek.weekNumber.toString());
+            getReservations(targetWeek.id.toString());
 
             // 날짜가 아직 선택되지 않았거나, 선택된 날짜가 해당 주차 범위 밖이라면 초기화
             // (기본값: 주차 시작일 or 오늘)
