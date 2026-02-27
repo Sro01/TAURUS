@@ -15,7 +15,7 @@ export default function HomePage() {
           <span className="title-line">TAURUS</span>
         </h1>
         <p className="hero-subtitle">Jeonbuk National University Band Club</p>
-        <p className="hero-credit">Since 1986</p>
+        <p className="hero-credit">Since 1987</p>
       </div>
       
       <button 
