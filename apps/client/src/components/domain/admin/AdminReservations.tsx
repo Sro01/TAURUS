@@ -249,7 +249,7 @@ export default function AdminReservations() {
                         </div>
                         <div className="flex flex-col items-start gap-1 text-xs text-text-sub font-mono">
                            <span>{start.format('M/D(ddd) HH:mm')} ~ {end.format('HH:mm')}</span>
-                          {res.type === 'ADMIN' && (
+                          {res.description && (
                             <span className="flex items-center gap-1">
                               <Info size={12} /> {res.description}
                             </span>
