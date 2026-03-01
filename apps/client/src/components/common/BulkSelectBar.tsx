@@ -18,7 +18,7 @@ export function BulkSelectBar({
   const isPartialSelected = selectedCount > 0 && selectedCount < totalCount;
 
   return (
-    <div className={`flex items-center justify-between px-4 py-2 bg-white/5 rounded-lg border border-white/5 mb-2 ${className}`}>
+    <div className={`flex items-center justify-between px-4 py-2 mb-2 ${className}`}>
       <Checkbox
         checked={isAllSelected}
         indeterminate={isPartialSelected}

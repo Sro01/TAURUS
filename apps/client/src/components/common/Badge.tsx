@@ -1,6 +1,6 @@
 import { HTMLAttributes, ReactNode } from 'react';
 
-type BadgeVariant = 'default' | 'brand' | 'success' | 'warn' | 'danger' | 'outline';
+type BadgeVariant = 'default' | 'brand' | 'success' | 'warn' | 'danger' | 'info' | 'outline';
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
@@ -13,6 +13,7 @@ const VARIANT_STYLES: Record<BadgeVariant, string> = {
   success: 'bg-status-success/10 text-status-success border border-status-success/20',
   warn: 'bg-status-warn/10 text-status-warn border border-status-warn/20',
   danger: 'bg-status-danger/10 text-status-danger border border-status-danger/20',
+  info: 'bg-status-info/10 text-status-info border border-status-info/20',
   outline: 'bg-transparent text-text-sub border border-border',
 };
 

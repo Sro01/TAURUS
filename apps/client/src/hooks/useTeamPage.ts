@@ -12,6 +12,7 @@ export function useTeamPage() {
 
     // 상태
     const [isDeleting, setIsDeleting] = useState(false);
+    const [selectedResIds, setSelectedResIds] = useState<string[]>([]);
 
     // 데이터 로드
     useEffect(() => {
@@ -19,15 +20,15 @@ export function useTeamPage() {
         getMyReservations();
     }, [fetchMyTeam, getMyReservations]);
 
-    // 예약 취소 핸들러
+    // 예약 취소 핸들러 (단건)
     const handleCancelReservation = useCallback(async (id: string) => {
-        if (!confirm('정말로 예약을 취소하시겠습니까?')) return;
         try {
             await cancelReservation(id);
             getMyReservations();
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert('예약 취소에 실패했습니다.');
+            const statusCode = error.response?.status || 500;
+            throw new Error(String(statusCode)); // ReservationList의 단건/일괄 취소에서 에러 전파
         }
     }, [cancelReservation, getMyReservations]);
 
@@ -63,7 +64,9 @@ export function useTeamPage() {
         myReservations,
         loading: teamLoading || resLoading,
         isDeleting,
-        fetchMyTeam, // 정보 갱신용
+        selectedResIds,
+        setSelectedResIds,
+        fetchMyTeam,
         handleCancelReservation,
         handleDeleteTeam,
         handleLogout,
