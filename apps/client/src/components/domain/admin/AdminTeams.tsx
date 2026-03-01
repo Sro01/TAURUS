@@ -3,7 +3,7 @@ import dayjs from '../../../utils/dayjs';
 import { adminService, teamService } from '../../../services';
 import { Input, Checkbox, ListRow } from '../../common';
 import ReservationList from '../team/ReservationList';
-import BulkActionBar from './BulkActionBar';
+import { BulkActionBar } from '../../common';
 import { Users as UsersIcon } from 'lucide-react';
 import { Team } from '../../../types/team';
 import { Reservation } from '../../../types/reservation';
@@ -14,7 +14,8 @@ export default function AdminTeams() {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [selectedTeamReservations, setSelectedTeamReservations] = useState<Reservation[]>([]);
   const [isTeamResLoading, setIsTeamResLoading] = useState(false);
-  const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]); // Multi-select state
+  const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
+  const [selectedResIds, setSelectedResIds] = useState<string[]>([]);
 
   const toggleSelection = (id: string) => {
     setSelectedTeamIds(prev => 
@@ -68,18 +69,19 @@ export default function AdminTeams() {
 
   const handleTeamClick = (team: Team) => {
     setSelectedTeam(team);
+    setSelectedResIds([]); // 팀 변경 시 예약 선택 초기화
     loadTeamReservations(team.id);
   };
 
-  const handleCancelReservation = async (id: string, teamName: string) => {
-    if (!confirm(`'${teamName}' 팀의 예약을 취소하시겠습니까? (관리자 권한)`)) return;
+  /** 예약 취소 핸들러 (단건 — ReservationList의 일괄 취소에서도 사용) */
+  const handleCancelReservation = async (id: string) => {
     try {
-      await adminService.cancelReservation(id); 
+      await adminService.cancelReservation(id);
       if (selectedTeam) loadTeamReservations(selectedTeam.id);
     } catch (error: any) {
       console.error(error);
-      const message = error.response?.data?.message || '예약 취소 실패';
-      alert(`오류 발생: ${message}`);
+      const statusCode = error.response?.status || 500;
+      throw new Error(String(statusCode)); // ReservationList 내부 일괄 취소에서 에러 전파
     }
   };
 
@@ -163,7 +165,7 @@ export default function AdminTeams() {
       {/* 팀 상세 및 예약 이력 (우측) */}
       <div className="lg:col-span-7">
         {selectedTeam ? (
-          <div className="bg-bg-card rounded-2xl border border-white/10 p-6 sticky top-24 animate-in fade-in slide-in-from-right-4">
+          <div className="bg-bg-card rounded-2xl border border-white/10 p-4 sticky top-24 animate-in fade-in slide-in-from-right-4">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="text-2xl font-bold text-white mb-1">{selectedTeam.name}</h3>
@@ -175,7 +177,10 @@ export default function AdminTeams() {
               <ReservationList 
                 reservations={selectedTeamReservations}
                 loading={isTeamResLoading}
-                onCancel={(id: string) => handleCancelReservation(id, selectedTeam.name)}
+                onCancel={handleCancelReservation}
+                selectable
+                selectedIds={selectedResIds}
+                onSelectionChange={setSelectedResIds}
                 showHeader={false}
               />
             </div>

@@ -12,6 +12,8 @@ export default function TeamDetailPage() {
     myReservations,
     loading,
     isDeleting,
+    selectedResIds,
+    setSelectedResIds,
     fetchMyTeam,
     handleCancelReservation,
     handleDeleteTeam,
@@ -90,11 +92,14 @@ export default function TeamDetailPage() {
           </div>
         </section>
 
-        {/* 3. Reservation History */}
+        {/* 3. Reservation History — selectable + 일괄 취소 */}
         <ReservationList 
           reservations={myReservations} 
           loading={loading} 
-          onCancel={handleCancelReservation} 
+          onCancel={handleCancelReservation}
+          selectable
+          selectedIds={selectedResIds}
+          onSelectionChange={setSelectedResIds}
         />
 
         {/* 4. Danger Zone */}

@@ -20,3 +20,4 @@ export * from './Text';
 export * from './Dropdown';
 export { default as MultiDatePicker } from './MultiDatePicker';
 export * from './BulkSelectBar';
+export { default as BulkActionBar } from './BulkActionBar';

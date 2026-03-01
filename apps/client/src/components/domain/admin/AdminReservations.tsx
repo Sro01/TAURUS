@@ -5,17 +5,13 @@ import { adminService } from '../../../services';
 import { 
   Button, 
   Input, 
-  Checkbox, 
-  Badge, 
-  ListRow, 
   Card, 
   Text, 
   Dropdown, 
   MultiDatePicker, 
   SectionHeader
 } from '../../common';
-import BulkActionBar from './BulkActionBar';
-import { Info } from 'lucide-react';
+import ReservationList from '../team/ReservationList';
 
 export default function AdminReservations() {
   const { allWeeks, loading: weekLoading,refreshAllWeeks } = useWeek();
@@ -33,7 +29,7 @@ export default function AdminReservations() {
   const weekOptions = useMemo(() => {
     if (!allWeeks) return [];
     return allWeeks.map(week => ({
-      value: week.weekNumber.toString(),
+      value: week.id.toString(),
       label: `${week.weekNumber}주차 (${dayjs(week.startDate).format('MM.DD')} ~ ${dayjs(week.endDate).format('MM.DD')})`
     }));
   }, [allWeeks]);
@@ -49,23 +45,15 @@ export default function AdminReservations() {
     });
   }, []);
 
-  // Handlers
-  const toggleSelection = (id: string) => {
-    setSelectedResIds(prev => 
-      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
-    );
-  };
-
-  const handleBulkCancel = async () => {
-    if (!confirm(`선택한 ${selectedResIds.length}개의 예약을 정말 취소하시겠습니까?`)) return;
+  /** 예약 취소 핸들러 (단건 — ReservationList의 일괄 취소에서도 사용) */
+  const handleCancelReservation = async (id: string) => {
     try {
-      await Promise.all(selectedResIds.map(id => adminService.cancelReservation(id)));
+      await adminService.cancelReservation(id);
       if (selectedWeekNumber > 0) getReservations(selectedWeekNumber.toString());
-      setSelectedResIds([]);
-      alert('일괄 취소가 완료되었습니다.');
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('일부 예약 취소에 실패했습니다.');
+      const statusCode = error.response?.status || 500;
+      throw new Error(String(statusCode)); // ReservationList 내부 일괄 취소에서 에러 상태코드 활용
     }
   };
 
@@ -177,7 +165,7 @@ export default function AdminReservations() {
         </Card>
       </section>
 
-      {/* 2. 주차별 예약 조회 섹션 */}
+      {/* 2. 주차별 예약 조회 섹션 — ReservationList 컴포넌트 활용 */}
       <section className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <Text variant="h3" className="border-0 pb-0">주차별 예약 조회</Text>
@@ -191,85 +179,18 @@ export default function AdminReservations() {
           </div>
         </div>
 
-        <div className="relative">
-          {resLoading ? (
-            <div className="text-center text-text-sub py-20 animate-pulse">예약 데이터를 불러오는 중...</div>
-          ) : reservations.length === 0 ? (
-            <div className="text-center py-20 bg-bg-card/30 rounded-2xl border border-dashed border-white/5">
-              <Text color="sub" align="center">해당 주차에 예약이 없습니다.</Text>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center gap-2 px-2 mb-2">
-                 <Checkbox 
-                   checked={selectedResIds.length === reservations.length && reservations.length > 0}
-                   onChange={(e) => {
-                     if (e.target.checked) {
-                       setSelectedResIds(reservations.map(r => r.id));
-                     } else {
-                       setSelectedResIds([]);
-                     }
-                   }}
-                   label="전체 선택"
-                   className="text-xs text-text-sub"
-                 />
-              </div>
-
-              {reservations.map(res => {
-                const start = dayjs(res.startTime);
-                const end = dayjs(res.endTime);
-                const isSelected = selectedResIds.includes(res.id);
-
-                return (
-                  <ListRow
-                    key={res.id}
-                    className={`transition-colors ${isSelected ? 'bg-primary/5 border-primary/30' : ''}`}
-                    onClick={() => toggleSelection(res.id)}
-                    left={
-                      <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
-                         <Checkbox 
-                           checked={isSelected}
-                           onChange={() => toggleSelection(res.id)}
-                         />
-                      </div>
-                    }
-                    center={
-                      <div>
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <Text weight="bold" className="text-base">
-                            {res.teamName || (res.type === 'ADMIN' ? '관리자 점유' : 'Unknown Team')}
-                          </Text>
-                          <Badge variant={
-                            res.type === 'ADMIN' ? 'brand' : 
-                            res.status === 'CONFIRMED' ? 'success' : 
-                            res.status === 'PENDING' ? 'warn' : 'default'
-                          }>
-                            {res.type === 'ADMIN' ? 'ADMIN' : res.status}
-                          </Badge>
-                        </div>
-                        <div className="flex flex-col items-start gap-1 text-xs text-text-sub font-mono">
-                           <span>{start.format('M/D(ddd) HH:mm')} ~ {end.format('HH:mm')}</span>
-                          {res.description && (
-                            <span className="flex items-center gap-1">
-                              <Info size={12} /> {res.description}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    }
-                  />
-                );
-              })}
-            </>
-          )}
-          
-          <BulkActionBar 
-            selectedCount={selectedResIds.length}
-            onClear={() => setSelectedResIds([])}
-            onDelete={selectedResIds.length > 0 ? handleBulkCancel : undefined}
-          />
-        </div>
+        <ReservationList
+          reservations={reservations}
+          loading={resLoading}
+          onCancel={handleCancelReservation}
+          selectable
+          selectedIds={selectedResIds}
+          onSelectionChange={setSelectedResIds}
+          showTeamName
+          showHeader={false}
+        />
       </section>
     </div>
   );
 }
+

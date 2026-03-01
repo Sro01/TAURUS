@@ -1,7 +1,7 @@
 import dayjs from '../../../utils/dayjs';
-import { Modal } from '../../common';
+import { Modal, InlineAlert, Badge } from '../../common';
 import { Reservation } from '../../../types/reservation';
-import { Users, Clock, Calendar } from 'lucide-react';
+import { Clock, Calendar } from 'lucide-react';
 import AuthForm from '../auth/AuthForm';
 
 interface ReservationModalProps {
@@ -60,21 +60,15 @@ export default function ReservationModal({
 
         {/* 대기열 정보 (있을 경우만) */}
         {showWaitlist && pendingTeams.length > 0 && (
-          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-primary text-sm font-medium">
-                <Users className="w-4 h-4" />
-                <span>현재 대기 {pendingTeams.length}팀</span>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
+          <InlineAlert variant="info" title={`현재 대기 ${pendingTeams.length}팀`}>
+            <div className="flex flex-wrap gap-1.5 mt-2">
               {pendingTeams.map((team, idx) => (
-                <span key={idx} className="bg-primary/20 text-primary px-2 py-1 rounded-md border border-primary/10">
+                <Badge key={idx} variant="info">
                   {team}
-                </span>
+                </Badge>
               ))}
             </div>
-          </div>
+          </InlineAlert>
         )}
 
         {/* 인증 및 예약 폼 (AuthForm 재사용) */}
