@@ -59,20 +59,6 @@ export default function InstantReservationPage() {
         }
       />
 
-      <InlineAlert
-        variant="info"
-        title="베타 테스트 안내"
-        children={
-          <div className="flex-col space-y-1 text-white/90">
-            <p>• 현재 베타 테스트 단계이며, 시스템 상황에 따라 테스트 기간이 연장될 수 있습니다. (2026.03.15 ~ 2026.04.15)</p>
-            <p>• 토러스에 대한 애정으로 1인 개발한 시스템이니 너그러운 마음으로 이용해 주시면 감사하겠습니다.</p>
-            <p>• 시스템 관련 피드백 및 버그 제보는 아래 오픈 채팅방으로 문의 주시면 감사하겠습니다.</p>
-            <p>• <a href="https://open.kakao.com/o/suXRhsli" className="text-text-sub underline">https://open.kakao.com/o/suXRhsli</a> </p>
-            
-          </div>
-        }
-      />
-      
       <ReservationPageLayout
         weekData={weekData}
         loading={loading}
