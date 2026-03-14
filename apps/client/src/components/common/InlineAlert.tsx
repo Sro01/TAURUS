@@ -34,7 +34,7 @@ export default function InlineAlert({ variant = 'info', children, title, classNa
   const Icon = config.icon;
 
   return (
-    <div className={`flex gap-3 p-4 rounded-lg border ${config.style} ${className}`}>
+    <div className={`flex gap-3 p-4 my-4 rounded-lg border ${config.style} ${className}`}>
       <Icon className="w-5 h-5 flex-shrink-0 mt-0.5" weight="fill" />
       <div className="flex-1 text-sm">
         {title && <strong className="block font-bold mb-1">{title}</strong>}

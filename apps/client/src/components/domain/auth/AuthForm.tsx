@@ -74,8 +74,8 @@ export default function AuthForm({
       <div className="space-y-4">
         {!hideNameField && (
           <Input
-            label="팀 이름"
-            placeholder="팀 이름을 입력하세요"
+            label="팀명"
+            placeholder="합주할 곡명, 가수명, 팀명 등 입력 (공백, 특수문자, 중복 불가)"
             value={name}
             onChange={handleNameChange}
             error={nameError}
@@ -85,7 +85,7 @@ export default function AuthForm({
         <Input
           label="비밀번호"
           type="password"
-          placeholder="비밀번호 (4자리 이상)"
+          placeholder="비밀번호 입력 (4자리 이상)"
           value={password}
           onChange={handlePasswordChange}
           error={passwordError}
@@ -95,8 +95,10 @@ export default function AuthForm({
         />
       </div>
 
-      <div className="pt-2 text-xs text-text-sub text-center">
-        * 처음 입력한 비밀번호로 자동 등록되며, 추후 예약 확인에 사용됩니다.
+      <div className="pt-2 text-xs text-text-sub space-y-1">
+        <p>* 따로 회원가입 절차 없이, 해당 팀명으로 최초 예약 시 자동으로 팀 등록됩니다.</p>
+        <p>* 등록된 팀명 및 비밀번호는 예약 페이지 및 팀 관리 페이지 로그인 시 사용됩니다.</p>
+        <p>* 팀 관리 페이지에서 팀명 및 비밀번호 변경이 가능합니다.</p>
       </div>
 
       <div className="flex gap-2 pt-2">

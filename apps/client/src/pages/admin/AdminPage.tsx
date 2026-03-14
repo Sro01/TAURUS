@@ -1,5 +1,5 @@
 import { useAdminPage, AdminTab } from '../../hooks/useAdminPage';
-import { PageContainer, Button, SectionHeader } from '../../components/common';
+import { PageContainer, PageTitle, Button } from '../../components/common';
 import NavigationBar, { TabItem } from '../../components/common/NavigationBar';
 import AuthModal from '../../components/domain/auth/AuthModal';
 import AdminReservations from '../../components/domain/admin/AdminReservations';
@@ -44,15 +44,14 @@ export default function AdminPage() {
   return (
     <PageContainer>
       {/* 1. Header & Logout */}
-            <SectionHeader 
-              title="관리자 페이지"
-              action={
-                <Button variant="outline" size="sm" onClick={handleLogout}>
-                  로그아웃
-                </Button>
-              }
-              className="border-none"
-            />
+      <PageTitle
+        title="관리자 페이지"
+        action={
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            로그아웃
+          </Button>
+        }
+      />
       {/* 상단 네비게이션 */}
         <NavigationBar<AdminTab>
           tabs={tabs}

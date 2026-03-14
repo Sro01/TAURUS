@@ -18,7 +18,7 @@ export default function TimeSlotList({ selectedDate, reservations, onReserve }: 
   });
 
   return (
-    <div className="flex flex-col pb-20">
+    <div className="flex flex-col">
       {slots.map((hour, i) => {
         // 슬롯 시간 계산
         const slotStart = selectedDate.hour(hour).minute(0).second(0).millisecond(0);

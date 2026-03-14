@@ -115,10 +115,10 @@ export default function AdminReservations() {
   }, [selectedWeekNumber, getReservations]);
 
   return (
-    <div className="space-y-10 pb-20">
+    <div className="space-y-10">
       {/* 1. 예약하기 섹션 */}
       <section className="space-y-6">
-        <SectionHeader title="관리자 예약" description="관리자 예약은 바로 확정되며, 기존 예약을 덮어씌웁니다." />
+        <SectionHeader title="관리자 권한으로 예약하기" description="관리자 예약은 바로 확정되며, 기존 예약을 덮어씌웁니다." />
         <Card className="p-6 md:p-8 space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* 날짜 선택 */}
@@ -167,17 +167,15 @@ export default function AdminReservations() {
 
       {/* 2. 주차별 예약 조회 섹션 — ReservationList 컴포넌트 활용 */}
       <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <Text variant="h3" className="border-0 pb-0">주차별 예약 조회</Text>
-          <div className="w-full sm:w-64">
-            <Dropdown 
-              options={weekOptions}
-              value={selectedWeekNumber}
-              onChange={(val) => setSelectedWeekNumber(Number(val))}
-              fullWidth
-            />
+          <SectionHeader title="주차별 예약 현황" description="각 주차별로 모든 예약 현황을 조회합니다." />
+          <div className="w-full sm:w-64 sm:ml-auto">
+              <Dropdown 
+                options={weekOptions}
+                value={selectedWeekNumber}
+                onChange={(val) => setSelectedWeekNumber(Number(val))}
+                fullWidth
+              />
           </div>
-        </div>
 
         <ReservationList
           reservations={reservations}

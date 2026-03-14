@@ -33,7 +33,7 @@ export default function AdminSettings() {
   if (!settings) return <div className="text-center py-10">설정 로딩 중...</div>;
 
   return (
-    <Card className="p-8 max-w-xl mx-auto border-primary/20 bg-gradient-to-br from-bg-card to-bg-main">
+    <Card className="p-8 max-w-xl mx-auto border-primary/20 bg-linear-to-br from-bg-card to-bg-main">
       <div className="flex items-center gap-3 mb-8">
         <div className="p-3 bg-primary/10 rounded-2xl text-primary">
           <Settings className="w-6 h-6" />
