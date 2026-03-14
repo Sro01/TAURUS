@@ -175,7 +175,7 @@ export default function ReservationList({
                   }
                   right={
                     <Badge
-                      className="w-[64px] justify-center mt-0.5 shrink-0"
+                      className="w-16 justify-center mt-0.5 shrink-0"
                       variant={
                         res.type === 'ADMIN'
                           ? 'brand'

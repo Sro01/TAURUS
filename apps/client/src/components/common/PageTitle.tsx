@@ -1,17 +1,17 @@
 import { ReactNode } from 'react';
 
-interface SectionHeaderProps {
+interface PageTitleProps {
   title: string;
   description?: string;
   action?: ReactNode;
   className?: string;
 }
 
-export default function SectionHeader({ title, description, action, className = '' }: SectionHeaderProps) {
+export default function PageTitle({ title, description, action, className = '' }: PageTitleProps) {
   return (
-    <div className={`flex items-end justify-between ${className} border-b border-border pb-4 mb-6`}>
+    <div className={`flex items-end justify-between border-b border-border pb-4 mb-6 ${className}`}>
       <div>
-        <h3 className="text-xl font-bold text-text-main tracking-tight">{title}</h3>
+        <h2 className="text-2xl font-bold text-text-main tracking-tight">{title}</h2>
         {description && <p className="text-sm text-text-sub mt-1">{description}</p>}
       </div>
       {action && <div className="shrink-0 ml-4">{action}</div>}

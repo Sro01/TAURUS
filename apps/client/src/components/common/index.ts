@@ -6,6 +6,7 @@ export { default as Overlay } from './Overlay';
 export { default as EmptyState } from './EmptyState';
 export { default as NavigationBar } from './NavigationBar';
 export { default as PageContainer } from './PageContainer';
+export { default as PageTitle } from './PageTitle';
 
 // New Architecture Components
 export { default as Badge } from './Badge';

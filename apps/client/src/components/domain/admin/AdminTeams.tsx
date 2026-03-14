@@ -113,7 +113,7 @@ export default function AdminTeams() {
             />
         </div>
         
-        <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+        <div className="space-y-2 max-h-150 overflow-y-auto pr-2 custom-scrollbar">
           {teams.map(team => {
             const isSelected = selectedTeamIds.includes(team.id);
             const isActive = selectedTeam?.id === team.id;

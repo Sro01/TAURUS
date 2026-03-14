@@ -2,7 +2,7 @@
 
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import AuthForm from '../../components/domain/auth/AuthForm';
-import { PageContainer } from '../../components/common';
+import { PageContainer, PageTitle } from '../../components/common';
 import { authService, adminService } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -35,7 +35,8 @@ export default function LoginPage() {
   };
 
   return (
-    <PageContainer title={initialRole === 'ADMIN' ? '관리자 로그인' : '팀 로그인'}>
+    <PageContainer>
+      <PageTitle title={initialRole === 'ADMIN' ? '관리자 로그인' : '팀 로그인'} />
       <div className="max-w-md mx-auto mt-10 p-6 bg-bg-card rounded-2xl border border-white/10 shadow-xl">
         <AuthForm
           onSubmit={handleSubmit}

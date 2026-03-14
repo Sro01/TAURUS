@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTeamPage } from '../../hooks/useTeamPage';
-import { PageContainer, SectionHeader, Text, Button, Modal, Input } from '../../components/common';
+import { PageContainer, PageTitle, Text, Button, Modal, Input } from '../../components/common';
 import ReservationList from '../../components/domain/team/ReservationList';
 import DangerZone from '../../components/domain/team/DangerZone';
 import { teamService } from '../../services';
@@ -65,7 +65,7 @@ export default function TeamDetailPage() {
   return (
     <PageContainer>
       {/* 1. Header & Logout */}
-      <SectionHeader 
+      <PageTitle
         title="팀 관리"
         description="팀 이름 및 비밀번호 변경"
         action={

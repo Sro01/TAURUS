@@ -2,6 +2,7 @@ import dayjs from '../../utils/dayjs';
 import { useAuth } from '../../hooks';
 import { useReservationPage } from '../../hooks/useReservationPage';
 import { useReservationAction } from '../../hooks/useReservationAction';
+import { PageContainer, PageTitle } from '../../components/common';
 import ReservationPageLayout from '../../components/domain/reservation/ReservationPageLayout';
 
 export default function InstantReservationPage() {
@@ -44,33 +45,36 @@ export default function InstantReservationPage() {
     : null;
   
   return (
-    <ReservationPageLayout
-      title="바로 예약"
-      weekData={weekData}
-      loading={loading}
-      reservations={reservations}
-      selectedDate={selectedDate}
-      onDateSelect={handleDateSelect}
-      onTimeSlotClick={handleTimeSlotClick}
-      
-      banner={{
-        label: "This Week",
-        weeks: weekData?.weekNumber || 0,
-        startDate: weekData?.startDate || '',
-        endDate: weekData?.endDate || '',
-        theme: 'red'
-      }}
-
-      modalProps={{
-        isOpen: isAuthModalOpen,
-        onClose: closeModal,
-        selectedTime: selectedTimeStr, 
-        onSubmit: handleAuthSubmit,
-        teamName,
-        teamPassword,
-        showWaitlist: false,
-        existingReservations: reservations
-      }}
-    />
+    <PageContainer>
+      <PageTitle
+        title="바로 예약"
+        description="오늘부터 예약 가능한 시간대를 선택해 바로 예약하세요."
+      />
+      <ReservationPageLayout
+        weekData={weekData}
+        loading={loading}
+        reservations={reservations}
+        selectedDate={selectedDate}
+        onDateSelect={handleDateSelect}
+        onTimeSlotClick={handleTimeSlotClick}
+        banner={{
+          label: "This Week",
+          weeks: weekData?.weekNumber || 0,
+          startDate: weekData?.startDate || '',
+          endDate: weekData?.endDate || '',
+          theme: 'red'
+        }}
+        modalProps={{
+          isOpen: isAuthModalOpen,
+          onClose: closeModal,
+          selectedTime: selectedTimeStr,
+          onSubmit: handleAuthSubmit,
+          teamName,
+          teamPassword,
+          showWaitlist: false,
+          existingReservations: reservations
+        }}
+      />
+    </PageContainer>
   );
 }

@@ -63,6 +63,307 @@
       ]
     }
   },
-  "hotPaths": [],
+  "hotPaths": [
+    {
+      "path": "apps/client/src/pages/team/TeamDetailPage.tsx",
+      "accessCount": 9,
+      "lastAccessed": 1773493999483,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/pages/instant-reservation/InstantReservationPage.tsx",
+      "accessCount": 9,
+      "lastAccessed": 1773494000122,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/pages/admin/AdminPage.tsx",
+      "accessCount": 8,
+      "lastAccessed": 1773493999702,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/common/index.ts",
+      "accessCount": 6,
+      "lastAccessed": 1773491428964,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/domain/reservation/ReservationPageLayout.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1773491483579,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/pages/pre-reservation/PreReservationPage.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1773493999916,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/pages/auth/LoginPage.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1773493999283,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/pages/home/HomePage.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1773494003044,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/constants/routes.ts",
+      "accessCount": 4,
+      "lastAccessed": 1773494133384,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/layout/ProtectedLayout.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1773488033270,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/routes.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1773488033945,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/pages/not-found/NotFoundPage.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1773494002839,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/App.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1773479014731,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/services/api.ts",
+      "accessCount": 2,
+      "lastAccessed": 1773479015990,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/contexts/AuthContext.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1773479016932,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/services/reservation.service.ts",
+      "accessCount": 2,
+      "lastAccessed": 1773479021267,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/useAsync.ts",
+      "accessCount": 2,
+      "lastAccessed": 1773479026491,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/useReservation.ts",
+      "accessCount": 2,
+      "lastAccessed": 1773479027536,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/useReservationPage.ts",
+      "accessCount": 2,
+      "lastAccessed": 1773479028239,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/types/auth.ts",
+      "accessCount": 2,
+      "lastAccessed": 1773479036530,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/types/reservation.ts",
+      "accessCount": 2,
+      "lastAccessed": 1773479037435,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/layout/Header.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1773488032763,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/layout/PublicLayout.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1773488033218,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/layout/Sidebar.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1773488040390,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/layout/ContentArea.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1773488040635,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/domain/auth/AuthForm.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1773494006460,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/domain/reservation/ReservationModal.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1773494007446,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 1,
+      "lastAccessed": 1773478193576,
+      "type": "directory"
+    },
+    {
+      "path": "apps/client/package.json",
+      "accessCount": 1,
+      "lastAccessed": 1773478195589,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/vite.config.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773478199552,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/main.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1773479015103,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/services/index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479016435,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/services/auth.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479020813,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/services/team.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479021688,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/services/week.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479022238,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/services/admin.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479022443,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/useReservationAction.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479027783,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/useTeam.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479028719,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/useTeamPage.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479029601,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/useWeek.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479030004,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/useAdminPage.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479030479,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/useAudioVisualizer.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479030915,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479031422,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/types/team.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479038191,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/types/week.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479038351,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/types/admin.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479038771,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/types/common.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479039220,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/utils/dayjs.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479040605,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/utils/FilmGrain.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773479040896,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/domain/auth/AuthModal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1773479060321,
+      "type": "file"
+    }
+  ],
   "userDirectives": []
 }
