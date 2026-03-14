@@ -1,0 +1,7 @@
+{
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"/Users/dmswo/Desktop/LEE/Dev/Project/WEB/Taurus/.claude/settings.json\"}",
+  "error": "File does not exist. Note: your current working directory is /Users/dmswo/Desktop/LEE/Dev/Project/WEB/Taurus.",
+  "timestamp": "2026-03-14T08:43:16.680Z",
+  "retry_count": 1
+}
