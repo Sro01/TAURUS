@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Input, Button } from '../../common';
-import { User, Lock, Info } from 'lucide-react';
+import { User, Lock } from 'lucide-react';
 
 interface AuthFormProps {
   initialName?: string;
