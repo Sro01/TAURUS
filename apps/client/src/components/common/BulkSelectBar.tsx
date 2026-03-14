@@ -29,7 +29,7 @@ export function BulkSelectBar({
               전체 선택
             </Text>
             {selectedCount > 0 && (
-              <span className="text-[10px] bg-brand-red text-white px-1.5 py-0.5 rounded-full font-mono">
+              <span className="text-[10px] bg-brand-red text-white px-1.5 py-0.5 rounded-full ">
                 {selectedCount}
               </span>
             )}

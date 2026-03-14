@@ -74,7 +74,7 @@ export default function ReservationPageLayout({
     <>
       {/* Banner Area */}
       {banner && (
-        <div className={`mb-4 p-3 rounded-lg text-sm ${
+        <div className={`my-4 p-3 rounded-lg text-sm ${
           banner.theme === 'yellow' ? 'bg-yellow-700/10 text-yellow-600' : 'bg-red-700/10 text-red-600'
         }`}>
           <span className="font-bold">{banner.label}:</span> {banner.weeks}주차

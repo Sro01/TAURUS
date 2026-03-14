@@ -149,7 +149,7 @@ export default function ReservationList({
                       </div>
                       
                       {/* 2행: 시간 */}
-                      <div className="flex items-center gap-1.5 text-sm font-bold text-text-main font-mono whitespace-nowrap">
+                      <div className="flex items-center gap-1.5 text-sm font-bold text-text-main  whitespace-nowrap">
                         <Clock size={15} className="shrink-0 text-text-muted" />
                         <span>{start.format('HH:mm')} ~ {end.format('HH:mm')}</span>
                       </div>

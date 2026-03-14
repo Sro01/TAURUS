@@ -142,7 +142,7 @@ export default function AdminTeams() {
                 }
                 right={
                   <div className="flex items-center gap-2">
-                    <p className="text-xs text-text-sub font-mono">{dayjs(team.createdAt).format('YYYY-MM-DD HH:mm')}</p>
+                    <p className="text-xs text-text-sub ">{dayjs(team.createdAt).format('YYYY-MM-DD HH:mm')}</p>
                   </div>
                 }
               />
@@ -186,7 +186,7 @@ export default function AdminTeams() {
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center py-20 bg-bg-card/30 rounded-2xl border border-dashed border-white/10 text-text-sub">
+          <div className="h-full flex flex-col items-center justify-center py-10 px-10 bg-bg-card/30 rounded-2xl border border-dashed border-white/10 text-text-sub">
             <UsersIcon className="w-12 h-12 mb-4 opacity-20" />
             <p>팀을 선택하면 상세 정보와 예약 이력을 볼 수 있습니다.</p>
           </div>

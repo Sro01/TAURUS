@@ -108,8 +108,8 @@ export default function TimeSlot(props: TimeSlotProps) {
       >
         {/* 시간 */}
         <div className="flex justify-between items-center">
-          <div className={`text-md font-bold font-mono ${styles.time}`}>
-            {timeStr} <span className="text-[10px] opacity-70">~ {endTimeStr}</span>
+          <div className={`text-md font-bold ${styles.time}`}>
+            {timeStr} <span className="text-[12px] opacity-70">~ {endTimeStr}</span>
           </div>
           {Icon && <Icon className={`w-4 h-4 ${styles.iconColor}`} />}
         </div>

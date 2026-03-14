@@ -15,7 +15,7 @@ export default function ContentArea({ children }: ContentAreaProps) {
     <main className={`min-h-screen ${
       isHome 
         ? 'w-full' 
-        : 'pt-14 max-w-[600px] mx-auto px-4 pb-20'
+        : 'pt-14 max-w-[600px] mx-auto px-4'
     }`}>
       {children}
     </main>
