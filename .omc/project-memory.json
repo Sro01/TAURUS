@@ -65,15 +65,21 @@
   },
   "hotPaths": [
     {
+      "path": "apps/client/src/pages/instant-reservation/InstantReservationPage.tsx",
+      "accessCount": 13,
+      "lastAccessed": 1773515794717,
+      "type": "file"
+    },
+    {
       "path": "apps/client/src/pages/home/HomePage.tsx",
       "accessCount": 11,
       "lastAccessed": 1773512589623,
       "type": "file"
     },
     {
-      "path": "apps/client/src/pages/instant-reservation/InstantReservationPage.tsx",
+      "path": "apps/client/src/components/domain/reservation/ReservationPageLayout.tsx",
       "accessCount": 11,
-      "lastAccessed": 1773513712786,
+      "lastAccessed": 1773515771703,
       "type": "file"
     },
     {
@@ -83,27 +89,57 @@
       "type": "file"
     },
     {
-      "path": "apps/client/src/pages/admin/AdminPage.tsx",
-      "accessCount": 8,
-      "lastAccessed": 1773493999702,
-      "type": "file"
-    },
-    {
-      "path": "apps/client/src/components/domain/reservation/ReservationPageLayout.tsx",
-      "accessCount": 8,
-      "lastAccessed": 1773513703259,
-      "type": "file"
-    },
-    {
       "path": "apps/client/src/pages/pre-reservation/PreReservationPage.tsx",
-      "accessCount": 8,
-      "lastAccessed": 1773513712986,
+      "accessCount": 10,
+      "lastAccessed": 1773515795032,
       "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/domain/auth/AuthForm.tsx",
+      "accessCount": 9,
+      "lastAccessed": 1773515771212,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/pages/admin/AdminPage.tsx",
+      "accessCount": 9,
+      "lastAccessed": 1773515828896,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 8,
+      "lastAccessed": 1773515816054,
+      "type": "directory"
     },
     {
       "path": "apps/client/src/components/common/index.ts",
       "accessCount": 7,
       "lastAccessed": 1773512597006,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/components/domain/reservation/ReservationModal.tsx",
+      "accessCount": 7,
+      "lastAccessed": 1773515787359,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/hooks/useReservationAction.ts",
+      "accessCount": 7,
+      "lastAccessed": 1773515787402,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/services/reservation.service.ts",
+      "accessCount": 7,
+      "lastAccessed": 1773515816973,
+      "type": "file"
+    },
+    {
+      "path": "apps/client/src/types/reservation.ts",
+      "accessCount": 7,
+      "lastAccessed": 1773515822802,
       "type": "file"
     },
     {
@@ -113,45 +149,21 @@
       "type": "file"
     },
     {
-      "path": "apps/client/src/components/domain/auth/AuthForm.tsx",
+      "path": "apps/client/src/pages/auth/LoginPage.tsx",
       "accessCount": 5,
-      "lastAccessed": 1773513689380,
+      "lastAccessed": 1773515416788,
       "type": "file"
     },
     {
-      "path": "apps/client/src/pages/auth/LoginPage.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1773493999283,
+      "path": "apps/client/src/components/domain/auth/AuthModal.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1773515786288,
       "type": "file"
     },
     {
       "path": "apps/client/src/hooks/useReservationPage.ts",
       "accessCount": 4,
       "lastAccessed": 1773513625405,
-      "type": "file"
-    },
-    {
-      "path": "apps/client/src/components/domain/reservation/ReservationModal.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1773513690007,
-      "type": "file"
-    },
-    {
-      "path": "apps/client/src/hooks/useReservationAction.ts",
-      "accessCount": 4,
-      "lastAccessed": 1773513702035,
-      "type": "file"
-    },
-    {
-      "path": "apps/client/src/services/reservation.service.ts",
-      "accessCount": 4,
-      "lastAccessed": 1773513702431,
-      "type": "file"
-    },
-    {
-      "path": "apps/client/src/types/reservation.ts",
-      "accessCount": 4,
-      "lastAccessed": 1773513702853,
       "type": "file"
     },
     {
@@ -189,18 +201,6 @@
       "accessCount": 3,
       "lastAccessed": 1773513631361,
       "type": "file"
-    },
-    {
-      "path": "apps/client/src/components/domain/auth/AuthModal.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1773513689756,
-      "type": "file"
-    },
-    {
-      "path": "",
-      "accessCount": 3,
-      "lastAccessed": 1773513697418,
-      "type": "directory"
     },
     {
       "path": "apps/client/src/App.tsx",
