@@ -51,11 +51,12 @@ export default function PreReservationPage() {
       <InlineAlert
           title="필독 사항"
           children={
-            <div className="flex-col space-y-1">
-              <p>• 미리 예약은 '다음 주' 합주 예약을 미리 예약 대기를 걸어둘 수 있습니다.</p>
-              <p>• 예약 성공: 예약 대기 1팀 / 예약 실패: 예약 대기 2팀 이상 (수강신청 정원이 1명인 장바구니라고 보면 됨)</p>
-              <p>• 주차 전환 시(매주 일요일 00시)에 예약 성공/실패 여부가 확정됩니다.</p>
-              <p>• (주의!) 고의로 예약 실패를 유도하는 행위는 제재 대상이 될 수 있습니다.</p>
+            <div className="flex-col space-y-1 text-white/85">
+              <p>• 미리 예약은 <span className="font-semibold text-white">다음 주</span> 합주 예약을 미리 <span className="font-semibold text-white">예약 대기</span>를 걸어둘 수 있습니다.</p>
+              <p>• <span className="font-semibold text-white">예약 성공: 예약 대기 1팀</span></p>
+              <p>• <span className="font-semibold text-white">예약 실패: 예약 대기 2팀 이상</span> (수강신청 정원이 1명인 장바구니라고 보면 됨)</p>
+              <p>• <span className="font-semibold text-white">매주 일요일 00시</span> 주차 전환 시에 <span className="font-semibold text-white">예약 성공/실패 여부가 확정</span>됩니다.</p>
+              <p>• <span className="font-semibold text-white">(주의!)</span> 고의로 예약 실패를 유도하는 행위는 제재 대상이 될 수 있습니다.</p>
             </div>
           }
         />

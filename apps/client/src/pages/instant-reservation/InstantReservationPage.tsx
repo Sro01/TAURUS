@@ -2,7 +2,7 @@ import dayjs from '../../utils/dayjs';
 import { useAuth } from '../../hooks';
 import { useReservationPage } from '../../hooks/useReservationPage';
 import { useReservationAction } from '../../hooks/useReservationAction';
-import { Button, InlineAlert, PageContainer, PageTitle } from '../../components/common';
+import { InlineAlert, PageContainer, PageTitle } from '../../components/common';
 import ReservationPageLayout from '../../components/domain/reservation/ReservationPageLayout';
 
 export default function InstantReservationPage() {
