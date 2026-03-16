@@ -1,11 +1,12 @@
-import { Clock, CheckCircle2, ClockFading, CirclePlus } from 'lucide-react';
+import { Clock, CheckCircle2, ClockFading, CirclePlus, BadgeCheck, Info } from 'lucide-react';
 
 interface TimeSlotProps {
   timeStr: string;
   endTimeStr: string;
   isPast: boolean;
-  isConfirmed: boolean;
   isPending: boolean;
+  isConfirmed: boolean;
+  isAdminConfirmed: boolean;
   teamName?: string;
   description?: string | null;
   pendingCount?: number;
@@ -17,9 +18,10 @@ export default function TimeSlot(props: TimeSlotProps) {
   const {
     timeStr,
     endTimeStr,
+    isPending,
     isPast,
     isConfirmed,
-    isPending,
+    isAdminConfirmed,
     teamName,
     description,
     pendingCount,
@@ -27,14 +29,15 @@ export default function TimeSlot(props: TimeSlotProps) {
     isLast = false,
   } = props;
 
-  // 상태 결정 (우선순위: past > confirmed > pending > available)
+  // 상태 결정 (우선순위: past > adminConfirmed > confirmed > pending > available)
   const state = isPast
-    ? isConfirmed ? 'pastConfirmed' : 'pastEmpty'
+  ? isConfirmed ? 'pastConfirmed' : 'pastEmpty'
+  : isAdminConfirmed ? 'adminConfirmed'
     : isConfirmed ? 'confirmed'
     : isPending ? 'pending'
     : 'available';
 
-  const isDisabled = isPast || state === 'confirmed';
+  const isDisabled = isPast || state === 'confirmed' || state === 'adminConfirmed';
 
   // 컨텐츠
   const content = 
@@ -62,12 +65,21 @@ export default function TimeSlot(props: TimeSlotProps) {
         iconColor: 'text-neutral-700',
     },
     confirmed: {
+        card: 'bg-gradient-to-br from-emerald-900/10 to-emerald-950/10 border-emerald-900/50',
+        dot: 'border-emerald-600 bg-emerald-950 shadow-[0_0_8px_rgba(220,38,38,0.6)]',
+        time: 'text-emerald-400',
+        content: 'font-bold text-md text-white',
+        shadow: 'shadow-lg shadow-black/40',
+        icon: CheckCircle2,
+        iconColor: 'text-emerald-500',
+    },
+    adminConfirmed: {
         card: 'bg-gradient-to-br from-red-900/10 to-red-950/10 border-red-900/50',
         dot: 'border-red-600 bg-red-950 shadow-[0_0_8px_rgba(220,38,38,0.6)]',
         time: 'text-red-400',
         content: 'font-bold text-md text-white',
         shadow: 'shadow-lg shadow-black/40',
-        icon: CheckCircle2,
+        icon: BadgeCheck,
         iconColor: 'text-red-500',
     },
     pending: {
@@ -122,7 +134,12 @@ export default function TimeSlot(props: TimeSlotProps) {
         )}
 
         {/* 부가정보 */}
-        {subContent && <div className="text-xs text-neutral-500">{subContent}</div>}
+          {subContent &&     
+            <div className="flex items-center space-x-1">
+              <Info className="w-3 h-3 text-neutral-400" />
+              <div className="text-sm text-neutral-400">{subContent}</div>
+            </div>
+          }
       </div>
     </div>
   );

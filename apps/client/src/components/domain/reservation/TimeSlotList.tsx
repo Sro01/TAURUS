@@ -43,10 +43,10 @@ export default function TimeSlotList({ selectedDate, reservations, onReserve }: 
         // 상태 판별
         const isPast = slotStart.isBefore(dayjs());
         const isConfirmed = !!confirmedRes;
+        const isAdminConfirmed = !!confirmedRes && confirmedRes.status === ReservationStatus.CONFIRMED_ADMIN;
 
         const handleSlotClick = () => {
           if (isPast) return;
-          if (isConfirmed && confirmedRes?.type !== 'ADMIN') return;
           if (isConfirmed) return;
 
           onReserve(timeStr);
@@ -59,6 +59,7 @@ export default function TimeSlotList({ selectedDate, reservations, onReserve }: 
             endTimeStr={endTimeStr}
             isPast={isPast}
             isConfirmed={isConfirmed}
+            isAdminConfirmed={isAdminConfirmed}
             isPending={isPending}
             teamName={confirmedRes?.teamName || undefined}
             description={confirmedRes?.description}
