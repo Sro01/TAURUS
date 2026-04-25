@@ -5,7 +5,7 @@ import './HomePage.css';
 
 export default function HomePage() {
   const { canvasRef, audioRef, isPlaying, togglePlayback, audioProgress, isLoading } = useAudioVisualizer();
-  const [isNoticeOpen, setIsNoticeOpen] = useState(true);
+  const [isNoticeOpen, setIsNoticeOpen] = useState(false);
 
   return (
     <div className="music-reactive-hero">
