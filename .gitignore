@@ -43,3 +43,6 @@ docs
 /generated/prisma
 
 .omc
+
+apps/client/.omc
+apps/server/.omc

@@ -3,7 +3,7 @@ import axios from 'axios';
 /** Axios 인스턴스 */
 const axiosClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
-    timeout: 5000,
+    timeout: 30000, // Railway 콜드 스타트(~12초)를 고려한 타임아웃
     headers: { 'Content-Type': 'application/json' },
 });
 
