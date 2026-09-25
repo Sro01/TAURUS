@@ -38,8 +38,9 @@ coverage
 # Vite 임시 파일
 node_modules/.vite/
 
-# Agent
-docs
+# Agent (에이전트 작업 문서는 무시하고, 확정 설계 문서(docs/design)만 커밋)
+docs/*
+!docs/design/
 /generated/prisma
 
 .omc
