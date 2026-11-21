@@ -42,7 +42,8 @@ export const useAudioVisualizer = () => {
     const beamRef = useRef<BeamState | null>(null);
 
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    // 재생 요청 후 데이터가 아직 없을 때만 true (모바일은 preload를 무시해 canplay가 오지 않을 수 있음)
+    const [isLoading, setIsLoading] = useState(false);
     const [audioProgress, setAudioProgress] = useState(0);
 
     const [fps, setFps] = useState(0);
@@ -435,11 +436,16 @@ export const useAudioVisualizer = () => {
             audioRef.current.pause();
             setIsPlaying(false);
         } else {
+            // HAVE_FUTURE_DATA(3) 미만이면 play()가 로드를 시작하므로 그동안 로딩 표시
+            if (audioRef.current.readyState < 3) setIsLoading(true);
             audioRef.current.play()
-                .then(() => setIsPlaying(true))
+                .then(() => {
+                    setIsPlaying(true);
+                    setIsLoading(false);
+                })
                 .catch(error => {
                     console.error('Error playing audio:', error);
-                    // Handle autoplay policy errors?
+                    setIsLoading(false);
                 });
         }
     }, [isPlaying, initAudio]);

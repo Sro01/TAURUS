@@ -25,7 +25,6 @@ export default function HomePage() {
       <button
         className={`play-button ${(!isPlaying && !isLoading) ? 'pulse-animation' : ''}`}
         onClick={togglePlayback}
-        disabled={isLoading}
       >
         {isLoading ? 'LOADING...' : (isPlaying ? 'STOP' : 'PLAY')}
       </button>
