@@ -66,7 +66,7 @@ export default function TimeSlot(props: TimeSlotProps) {
     },
     confirmed: {
         card: 'bg-gradient-to-br from-emerald-900/10 to-emerald-950/10 border-emerald-900/50',
-        dot: 'border-emerald-600 bg-emerald-950 shadow-[0_0_8px_rgba(220,38,38,0.6)]',
+        dot: 'border-emerald-600 bg-emerald-950 shadow-[0_0_8px_rgba(16,185,129,0.6)]',
         time: 'text-emerald-400',
         content: 'font-bold text-md text-white',
         shadow: 'shadow-lg shadow-black/40',
