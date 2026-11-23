@@ -74,7 +74,7 @@ export default function JamCreatePage() {
   return (
     <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-6">
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-extrabold">합주 시간 맞추기</h1>
+        <h1 className="text-2xl font-extrabold">합주 시간 조율</h1>
         <p className="text-[15px] text-muted-foreground">링크를 보내면 다 같이 되는 시간을 칠할 수 있어요.</p>
       </div>
 

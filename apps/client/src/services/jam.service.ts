@@ -14,7 +14,7 @@ import type { MainWeeksResponse } from '../types/week';
 const roomPath = (slug: string) => `/jam-rooms/${encodeURIComponent(slug)}`;
 
 /**
- * 합주 시간 맞추기 API (스펙 4.4)
+ * 합주 시간 조율 API (스펙 4.4)
  * 방 API는 jamApi(방 출입증), 주차 조회는 기존 axiosClient(공개 API)를 쓴다.
  * 바꾸기·저장·빠지기는 응답 본문을 쓰지 않는다. 끝나면 getRoom으로 다시 받아온다.
  */
