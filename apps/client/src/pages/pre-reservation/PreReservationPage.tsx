@@ -48,7 +48,6 @@ export default function PreReservationPage() {
     <PageContainer>
       <PageTitle
         title="미리 예약"
-        divider={false}
         action={
           <NoticeHelp title="필독 사항">
             <div className="flex-col space-y-1 text-white/85">

@@ -22,7 +22,7 @@ interface TextProps {
 const variantStyles: Record<TextVariant, string> = {
   h1: 'text-3xl md:text-4xl font-bold tracking-tight',
   h2: 'text-2xl md:text-3xl font-bold tracking-tight',
-  h3: 'text-xl md:text-2xl font-bold tracking-tight border-b border-border pb-2',
+  h3: 'text-xl md:text-2xl font-bold tracking-tight',
   subtitle: 'text-lg font-semibold',
   body: 'text-base',
   caption: 'text-sm text-text-sub leading-relaxed',

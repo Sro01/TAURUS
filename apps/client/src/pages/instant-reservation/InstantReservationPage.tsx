@@ -49,7 +49,6 @@ export default function InstantReservationPage() {
     <PageContainer>
       <PageTitle
         title="바로 예약"
-        divider={false}
         action={
           <NoticeHelp title="바로 예약 페이지 이용 시 필독 사항">
             <div className="flex-col space-y-1 text-white/85">
