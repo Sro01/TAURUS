@@ -11,19 +11,11 @@ interface SidebarProps {
   onNavigate: (path: string) => void;
 }
 
-/** 패널: 오른쪽에서 밀려 들어오고, 메뉴 줄은 위에서부터 차례로 나타남 */
+/** 패널: 오른쪽에서 밀려 들어오고 밀려 나감 */
 const panelVariants: Variants = {
   hidden: { x: '100%' },
-  shown: {
-    x: 0,
-    transition: { type: 'spring', stiffness: 420, damping: 40, staggerChildren: 0.04, delayChildren: 0.06 },
-  },
+  shown: { x: 0, transition: { type: 'spring', stiffness: 420, damping: 40 } },
   exit: { x: '100%', transition: { duration: 0.2, ease: [0.4, 0, 1, 1] } },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, x: 16 },
-  shown: { opacity: 1, x: 0, transition: { duration: 0.2, ease: [0, 0, 0.2, 1] } },
 };
 
 /** 동작 줄이기 설정이면 밀기 없이 나타나고 사라지기만 */
@@ -59,9 +51,8 @@ export default function Sidebar({ isOpen, onClose, items, onNavigate }: SidebarP
             exit="exit"
           >
             {items.map((item) => (
-              <motion.button
+              <button
                 key={item.path}
-                variants={reduceMotion ? undefined : itemVariants}
                 onClick={() => onNavigate(item.path)}
                 className={`w-full flex items-center gap-2 text-left px-4 py-3 rounded-lg transition-colors ${
                   location.pathname === item.path
@@ -73,7 +64,7 @@ export default function Sidebar({ isOpen, onClose, items, onNavigate }: SidebarP
                 {item.newUntil && today < item.newUntil && (
                   <Badge className="px-1.5 py-0 text-[10px] leading-4">NEW</Badge>
                 )}
-              </motion.button>
+              </button>
             ))}
           </motion.nav>
         </>
