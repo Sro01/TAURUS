@@ -41,6 +41,8 @@ export default function AuthForm({
   const [password, setPassword] = useState(initialPassword);
   const [nameError, setNameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  // 드롭다운에서 고른 팀 이름. 입력이 이 이름 그대로면 서버가 알려 준 이름이라 문자 검사를 건너뛰어요
+  const [pickedName, setPickedName] = useState('');
   const passwordRef = useRef<HTMLInputElement>(null);
 
   // 검색을 쓰지 않으면 빈 입력으로 불러 요청이 나가지 않아요
@@ -62,7 +64,9 @@ export default function AuthForm({
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => changeName(e.target.value);
 
   const handleSelectTeam = (teamName: string) => {
-    changeName(teamName);
+    setName(teamName);
+    setNameError('');
+    setPickedName(teamName);
     passwordRef.current?.focus();
   };
 
@@ -76,7 +80,11 @@ export default function AuthForm({
     e.preventDefault();
 
     // 제출 시 전체 검증
-    const newNameError = hideNameField ? '' : validate(name, '팀 이름');
+    // 서버가 알려 준 팀 이름(고른 이름 그대로이거나 지금 입력에 exact가 있음)과 서버가 문구를 정해 준 problem은
+    // 화면 문자 검사로 막지 않아요. 응답 전이거나 검색이 실패했으면 기존 검사가 판단해요.
+    const knownByServer = teamSearch && ((pickedName !== '' && name === pickedName) || hint.registered);
+    const newNameError =
+      hideNameField || knownByServer || hint.blocked ? '' : validate(name, '팀 이름');
     const newPasswordError = validate(password, '비밀번호');
 
     setNameError(newNameError);

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+// ui의 CommandInput은 검색 아이콘과 밑줄 테두리가 고정이라, 팀 이름 칸에는 cmdk 원본 입력을 써요
 import { Command as CommandPrimitive } from 'cmdk';
 import { User } from 'lucide-react';
 import { WarningCircle } from '@phosphor-icons/react';
@@ -50,7 +51,8 @@ export default function TeamNameField({
       ? NEW_TEAM_VALUE
       : (rowValues[0] ?? '');
 
-  const message = error || (listVisible ? null : hint.message);
+  // 서버가 막은 이름(problem)의 문구는 폼 검증 오류보다 먼저 보여요
+  const message = hint.isError ? hint.message : error || (listVisible ? null : hint.message);
   const isError = Boolean(error) || hint.isError;
 
   const handleChange = (next: string) => {
