@@ -7,6 +7,9 @@ import { TransformInterceptor } from '../src/common/interceptors/transform.inter
 // 테스트 데이터 prefix — 실제 데이터와 구분
 export const TEST_PREFIX = '__test_';
 
+// 이 테스트 파일이 시작된 시각 — 관리자 예약(teamId 없음)은 이 뒤에 만든 것만 테스트 데이터로 본다
+const TEST_STARTED_AT = new Date();
+
 /**
  * E2E 테스트용 NestJS 앱 초기화
  * - ValidationPipe 적용 (실제 서버와 동일한 환경)
@@ -47,12 +50,12 @@ export async function cleanupTestData(app: INestApplication) {
         },
     });
 
-    // teamId가 null인 테스트 예약 삭제 (관리자 예약)
-    // startTime 기준으로 오늘 이후 + CONFIRMED_ADMIN만 삭제 (안전장치)
+    // 테스트가 만든 관리자 예약 삭제 (teamId null) — 테스트 시작 전부터 있던 관리자 예약은 남긴다
     await prisma.reservation.deleteMany({
         where: {
             teamId: null,
             status: 'CONFIRMED_ADMIN',
+            createdAt: { gte: TEST_STARTED_AT },
         },
     });
 
