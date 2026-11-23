@@ -65,6 +65,6 @@ export function useReservationPage({ weekType }: UseReservationPageProps) {
         allReservations: reservations,   // 전체 예약 반환 (필요 시)
         selectedDate: selectedDate || dayjs(),
         handleDateSelect,
-        refreshReservations: () => targetWeek && getReservations(targetWeek.weekNumber.toString())
+        refreshReservations: () => targetWeek && getReservations(targetWeek.id.toString())
     };
 }
