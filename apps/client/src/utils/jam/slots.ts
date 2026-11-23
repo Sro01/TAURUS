@@ -10,6 +10,12 @@ import { WeekStatus, type MainWeeksResponse } from '../../types/week';
 export const SLOT_FIRST_HOUR = 9;
 /** 하루 칸 수: 09, 10, …, 22시 */
 export const SLOT_COUNT = 14;
+/** 마지막 칸 시작 시각 (서버 SLOT_END_HOUR와 같음) */
+export const SLOT_LAST_HOUR = SLOT_FIRST_HOUR + SLOT_COUNT - 1;
+/** 한 칸 길이(분): NN:00 ~ NN:50 */
+export const SLOT_DURATION_MIN = 50;
+/** 하루 칸 시작 시각 전부: 9, 10, …, 22 */
+export const SLOT_HOURS: readonly number[] = Array.from({ length: SLOT_COUNT }, (_, i) => SLOT_FIRST_HOUR + i);
 /** 14비트 전부 켠 값 (16383). 서버 검사 범위 0 ≤ v < 2^14 */
 export const FULL_DAY_MASK = (1 << SLOT_COUNT) - 1;
 /** 날짜 계산 시간대 */

@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { Reservation, ReservationStatus } from '../../../types/reservation';
 import TimeSlot from './TimeSlot';
+import { SLOT_DURATION_MIN, SLOT_HOURS } from '../../../utils/jam/slots';
 
 interface TimeSlotListProps {
   selectedDate: dayjs.Dayjs;
@@ -8,21 +9,16 @@ interface TimeSlotListProps {
   onReserve: (time: string) => void;
 }
 
-const SLOT_DURATION_MINUTES = 50;
-
 export default function TimeSlotList({ selectedDate, reservations, onReserve }: TimeSlotListProps) {
-  // 09:00 ~ 22:00 슬롯 생성
-  const slots = Array.from({ length: 14 }, (_, i) => {
-    const hour = i + 9;
-    return hour;
-  });
+  // 09:00 ~ 22:00 슬롯
+  const slots = SLOT_HOURS;
 
   return (
     <div className="flex flex-col">
       {slots.map((hour, i) => {
         // 슬롯 시간 계산
         const slotStart = selectedDate.hour(hour).minute(0).second(0).millisecond(0);
-        const slotEnd = slotStart.add(SLOT_DURATION_MINUTES, 'minute');
+        const slotEnd = slotStart.add(SLOT_DURATION_MIN, 'minute');
         const timeStr = slotStart.format('HH:mm');
         const endTimeStr = slotEnd.format('HH:mm');
         
