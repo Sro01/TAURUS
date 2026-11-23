@@ -11,7 +11,6 @@ interface TimeSlotProps {
   description?: string | null;
   pendingCount?: number;
   onClick: () => void;
-  isFirst?: boolean;
   isLast?: boolean;
 }
 
@@ -27,7 +26,6 @@ export default function TimeSlot(props: TimeSlotProps) {
     description,
     pendingCount,
     onClick,
-    isFirst = false,
     isLast = false,
   } = props;
 
@@ -108,13 +106,11 @@ export default function TimeSlot(props: TimeSlotProps) {
       {/*
         점은 카드 세로 가운데(아래 여백 pb-2 8px를 뺀 높이의 절반)에 둬요.
         카드 높이가 칸마다 달라서, 선은 칸마다 위 절반(칸 위 → 점)과 아래 절반(점 → 칸 아래)으로 나눠 그려 이웃 칸과 이어지게 해요.
+        첫 칸과 마지막 칸도 카드 위·아래 끝까지 선이 있어요.
       */}
-      {!isFirst && (
-        <div className="absolute left-[19px] top-0 h-[calc(50%-4px)] w-px bg-neutral-800" />
-      )}
-      {!isLast && (
-        <div className="absolute left-[19px] top-[calc(50%-4px)] bottom-0 w-px bg-neutral-800" />
-      )}
+      <div className="absolute left-[19px] top-0 h-[calc(50%-4px)] w-px bg-neutral-800" />
+      {/* 마지막 칸은 아래 여백까지 가지 않고 카드 아래 끝에서 멈춰요 */}
+      <div className={`absolute left-[19px] top-[calc(50%-4px)] w-px bg-neutral-800 ${isLast ? 'bottom-2' : 'bottom-0'}`} />
 
       {/* 점 */}
       <div className={`absolute left-[13.5px] top-[calc(50%-4px)] -translate-y-1/2 w-3 h-3 rounded-full border ${styles.dot} z-10 transition-all duration-300 group-hover:scale-110`} />
