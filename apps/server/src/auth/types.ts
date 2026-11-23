@@ -13,6 +13,8 @@ export interface JwtPayload {
     role: 'USER' | 'ADMIN';
     /** 토큰 버전 (비밀번호 변경 시 무효화용) */
     v?: number;
+    /** audience. 방 출입증은 'jam' (팀 API에서 거절) */
+    aud?: string;
 }
 
 /** JwtStrategy.validate()가 반환하는 객체 (= req.user) */

@@ -56,6 +56,11 @@ export async function cleanupTestData(app: INestApplication) {
         },
     });
 
+    // 테스트 합주 방 삭제 (참여자는 cascade)
+    await prisma.jamRoom.deleteMany({
+        where: { title: { startsWith: TEST_PREFIX } },
+    });
+
     // 테스트 팀 삭제
     await prisma.team.deleteMany({
         where: { name: { startsWith: TEST_PREFIX } },

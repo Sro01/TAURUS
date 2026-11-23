@@ -9,6 +9,7 @@ import { WeekModule } from './week/week.module';
 import { ReservationModule } from './reservation/reservation.module';
 import { AdminModule } from './admin/admin.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { JamModule } from './jam/jam.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PrismaModule } from './prisma/prisma.module';
     WeekModule,
     ReservationModule,
     AdminModule,
+    JamModule,
     ScheduleModule.forRoot(),
     PrismaModule,
   ],

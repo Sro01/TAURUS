@@ -106,3 +106,38 @@ model SystemConfig {
 
   @@map("system_configs")
 }
+
+// --------------------------------------
+// 합주 시간 맞추기 (jam)
+// --------------------------------------
+
+model JamRoom {
+  id        String   @id @default(uuid())
+  slug      String   @unique // 링크 주소, 무작위 12자 (영문 대소문자+숫자)
+  title     String // 1~15자
+  headcount Int? // null = 아직 몰라요
+  startDate DateTime @db.Date // 기간 첫날 (KST 날짜)
+  endDate   DateTime @db.Date // 기간 마지막 날
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  participants JamParticipant[]
+
+  @@index([endDate])
+  @@map("jam_rooms")
+}
+
+model JamParticipant {
+  id        String   @id @default(uuid())
+  roomId    String
+  room      JamRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  name      String // 보여 줄 이름
+  nameKey   String // 비교용 이름 (normalizeName)
+  pinHash   String
+  slots     Int[] // 날짜마다 14비트, 길이 = 기간 일수
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@unique([roomId, nameKey])
+  @@map("jam_participants")
+}

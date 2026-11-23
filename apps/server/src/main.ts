@@ -43,6 +43,7 @@ async function bootstrap() {
     .addTag('Week', '주차 관련 API')
     .addTag('Reservation', '예약 관련 API')
     .addTag('Admin', '관리자 관련 API')
+    .addTag('Jam', '합주 시간 맞추기 API')
     // JWT 토큰 인증 설정
     .addBearerAuth(
       {

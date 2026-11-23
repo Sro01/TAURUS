@@ -19,6 +19,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload): Promise<JwtUser> {
+    // 방 출입증(aud: 'jam')은 팀·관리자 출입증으로 쓸 수 없음
+    if (payload.aud === 'jam') throw new UnauthorizedException('팀 출입증이 아닙니다.');
+
     // 관리자 토큰인 경우 DB 조회 없이 통과 (Admin은 Team 테이블에 없음)
     if (payload.role === 'ADMIN') {
       return { id: payload.sub, name: payload.username, role: payload.role };
