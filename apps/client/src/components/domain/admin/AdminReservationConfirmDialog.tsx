@@ -64,7 +64,7 @@ export default function AdminReservationConfirmDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>{newCount}칸을 관리자 예약으로 잡을까요?</AlertDialogTitle>
           <AlertDialogDescription asChild>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-left">
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 justify-self-start text-left">
               <dt>날짜</dt>
               <dd className="text-foreground">{summary.dates}</dd>
               <dt>시간</dt>
