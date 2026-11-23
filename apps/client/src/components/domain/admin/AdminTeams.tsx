@@ -17,10 +17,17 @@ export default function AdminTeams() {
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
   const [selectedResIds, setSelectedResIds] = useState<string[]>([]);
 
+  // 팀 선택과 예약 선택은 동시에 하지 않아요. 한쪽을 고르면 다른 쪽 선택을 풀어서 아래 선택 바가 하나만 떠요
   const toggleSelection = (id: string) => {
+    setSelectedResIds([]);
     setSelectedTeamIds(prev => 
       prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
     );
+  };
+
+  const handleResSelectionChange = (ids: string[]) => {
+    if (ids.length > 0) setSelectedTeamIds([]);
+    setSelectedResIds(ids);
   };
 
   const handleBulkDelete = async () => {
@@ -103,6 +110,7 @@ export default function AdminTeams() {
                 checked={selectedTeamIds.length === teams.length && teams.length > 0}
                 onChange={(e) => {
                 if (e.target.checked) {
+                    setSelectedResIds([]);
                     setSelectedTeamIds(teams.map(t => t.id));
                 } else {
                     setSelectedTeamIds([]);
@@ -180,7 +188,7 @@ export default function AdminTeams() {
                 onCancel={handleCancelReservation}
                 selectable
                 selectedIds={selectedResIds}
-                onSelectionChange={setSelectedResIds}
+                onSelectionChange={handleResSelectionChange}
                 showHeader={false}
               />
             </div>
