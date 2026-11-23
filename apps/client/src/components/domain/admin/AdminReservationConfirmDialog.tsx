@@ -1,4 +1,5 @@
-import { CircleAlert, CircleCheck, LoaderCircle, TriangleAlert } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { ChevronDown, ChevronUp, CircleAlert, CircleCheck, LoaderCircle, TriangleAlert } from 'lucide-react';
 import dayjs from '@/utils/dayjs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
@@ -11,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import type { AdminReservationPreview, OverwrittenTeam } from '@/types/admin';
 import { JAM_TIMEZONE } from '@/utils/jam/slots';
 
@@ -33,6 +35,48 @@ interface AdminReservationConfirmDialogProps {
 const slotLabel = (iso: string) => dayjs(iso).tz(JAM_TIMEZONE).format('M/D (ddd) HH:mm');
 const teamLabel = (team: OverwrittenTeam) =>
   `${team.teamName ?? '알 수 없는 팀'}${team.status === 'PENDING' ? ' (대기)' : ''}`;
+
+/** 겹치는 예약 목록에서 처음에 보여 줄 줄 수 (나머지는 "N칸 더 보기") */
+const VISIBLE_ROWS = 5;
+
+interface ConflictRow {
+  key: string;
+  time: string;
+  detail: ReactNode;
+}
+
+/** 겹치는 칸 목록: VISIBLE_ROWS줄까지 보여 주고 나머지는 펼치기 */
+function ConflictList({ rows }: { rows: ConflictRow[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const hiddenCount = rows.length - VISIBLE_ROWS;
+  const shown = expanded ? rows : rows.slice(0, VISIBLE_ROWS);
+
+  return (
+    <>
+      <ul className="flex w-full flex-col gap-1">
+        {shown.map((row) => (
+          <li key={row.key} className="flex justify-between gap-4">
+            <span className="shrink-0 text-foreground">{row.time}</span>
+            {row.detail}
+          </li>
+        ))}
+      </ul>
+      {hiddenCount > 0 && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          aria-expanded={expanded}
+          className="-ml-2 px-2 text-muted-foreground"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? '접기' : `${hiddenCount}칸 더 보기`}
+          {expanded ? <ChevronUp data-icon="inline-end" /> : <ChevronDown data-icon="inline-end" />}
+        </Button>
+      )}
+    </>
+  );
+}
 
 /** 관리자 예약 전 확인: 요약 + 겹치는 예약(건너뛸 칸, 팀 예약이 취소될 칸) */
 export default function AdminReservationConfirmDialog({
@@ -60,7 +104,7 @@ export default function AdminReservationConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <AlertDialogContent>
+      <AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <AlertDialogHeader>
           <AlertDialogTitle>{newCount}칸을 관리자 예약으로 잡을까요?</AlertDialogTitle>
           <AlertDialogDescription asChild>
@@ -91,20 +135,19 @@ export default function AdminReservationConfirmDialog({
             <AlertDescription>겹치는 예약이 없어요</AlertDescription>
           </Alert>
         ) : (
-          <div className="flex max-h-72 flex-col gap-3 overflow-y-auto">
+          <div className="flex flex-col gap-3">
             {overwritten.length > 0 && (
               <Alert variant="destructive">
                 <TriangleAlert />
                 <AlertTitle className="line-clamp-none">{overwritten.length}칸의 팀 예약이 취소돼요</AlertTitle>
                 <AlertDescription>
-                  <ul className="flex w-full flex-col gap-1">
-                    {overwritten.map((slot) => (
-                      <li key={slot.startTime} className="flex justify-between gap-4">
-                        <span className="shrink-0 text-foreground">{slotLabel(slot.startTime)}</span>
-                        <span className="truncate text-foreground">{slot.teams.map(teamLabel).join(', ')}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <ConflictList
+                    rows={overwritten.map((slot) => ({
+                      key: slot.startTime,
+                      time: slotLabel(slot.startTime),
+                      detail: <span className="truncate text-foreground">{slot.teams.map(teamLabel).join(', ')}</span>,
+                    }))}
+                  />
                 </AlertDescription>
               </Alert>
             )}
@@ -114,14 +157,13 @@ export default function AdminReservationConfirmDialog({
                 <TriangleAlert />
                 <AlertTitle className="line-clamp-none">{skipped.length}칸은 이미 관리자 예약이 있어 건너뛰어요</AlertTitle>
                 <AlertDescription>
-                  <ul className="flex w-full flex-col gap-1">
-                    {skipped.map((slot) => (
-                      <li key={slot.startTime} className="flex justify-between gap-4">
-                        <span className="shrink-0 text-foreground">{slotLabel(slot.startTime)}</span>
-                        {slot.description && <span className="truncate">{slot.description}</span>}
-                      </li>
-                    ))}
-                  </ul>
+                  <ConflictList
+                    rows={skipped.map((slot) => ({
+                      key: slot.startTime,
+                      time: slotLabel(slot.startTime),
+                      detail: slot.description && <span className="truncate">{slot.description}</span>,
+                    }))}
+                  />
                 </AlertDescription>
               </Alert>
             )}
