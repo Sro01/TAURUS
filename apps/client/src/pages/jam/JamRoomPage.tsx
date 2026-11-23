@@ -238,8 +238,8 @@ export default function JamRoomPage() {
               {!room.ended && (
                 <Button
                   type="button"
-                  variant="outline"
-                  className="h-[52px] rounded-xl border-primary bg-transparent text-[15px] font-bold text-[#fca5a5] hover:bg-primary/10"
+                  variant="secondary"
+                  className="h-[52px] rounded-xl text-[15px] font-bold"
                   onClick={openMine}
                 >
                   {me ? '내 시간 고치기' : '내 시간 등록'}

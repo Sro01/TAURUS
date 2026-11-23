@@ -1,6 +1,6 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 
-type ButtonVariant = 'primary' | 'brand' | 'blue' | 'outline' | 'outline_blue' | 'ghost' | 'danger' | 'glow';
+type ButtonVariant = 'primary' | 'brand' | 'blue' | 'outline' | 'outline_blue' | 'ghost' | 'gray' | 'danger' | 'glow';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,6 +18,7 @@ const VARIANT_STYLES: Record<ButtonVariant, string> = {
   outline: 'border border-border text-text-main hover:border-brand-red hover:text-brand-red bg-transparent disabled:opacity-50 disabled:cursor-not-allowed',
   outline_blue: 'border border-border text-text-main hover:border-blue-500 hover:text-blue-500 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed',
   ghost: 'text-text-sub hover:bg-white/5 hover:text-text-main disabled:opacity-50 disabled:cursor-not-allowed bg-transparent border border-transparent',
+  gray: 'bg-surface-elevated text-text-main hover:bg-border-active disabled:opacity-50 disabled:cursor-not-allowed border border-transparent',
   danger: 'bg-status-danger text-white hover:bg-status-danger/90 disabled:opacity-50 disabled:cursor-not-allowed border border-transparent',
   // Special variant for HomePage
   glow: 'bg-transparent border border-white/30 text-white tracking-[0.2em] overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-white hover:text-black hover:border-white hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] disabled:opacity-50 disabled:cursor-wait',

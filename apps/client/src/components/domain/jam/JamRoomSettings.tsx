@@ -200,7 +200,7 @@ export default function JamRoomSettings({ open, onOpenChange, room, onSave, onLe
             </p>
           )}
           <DialogFooter className="grid grid-cols-2 gap-2 sm:flex-none">
-            <Button type="button" variant="outline" disabled={saving} onClick={() => setConfirmLeave(false)}>
+            <Button type="button" variant="secondary" disabled={saving} onClick={() => setConfirmLeave(false)}>
               취소
             </Button>
             <Button type="button" variant="destructive" disabled={saving} onClick={handleLeave}>

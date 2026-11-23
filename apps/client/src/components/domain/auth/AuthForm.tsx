@@ -139,7 +139,7 @@ export default function AuthForm({
 
       <div className="flex gap-2 pt-2">
         {onCancel && (
-          <Button variant="ghost" fullWidth onClick={onCancel} type="button">
+          <Button variant="gray" className="shrink-0 whitespace-nowrap" onClick={onCancel} type="button">
             취소
           </Button>
         )}
