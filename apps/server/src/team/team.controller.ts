@@ -35,7 +35,7 @@ export class TeamController {
     @ApiResponse({ status: 200, description: '변경 성공' })
     @ApiResponse({ status: 409, description: '이미 존재하는 팀 이름' })
     async updateName(@Request() req: { user: JwtUser }, @Body() dto: UpdateNameDto) {
-        return this.teamService.updateName(req.user.id, dto);
+        return this.teamService.updateName(req.user.id, dto.name);
     }
 
     @Patch('me/password')

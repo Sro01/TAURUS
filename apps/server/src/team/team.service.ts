@@ -1,12 +1,16 @@
 import { Injectable, NotFoundException, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Prisma, Team } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { TeamResponseDto } from './dto/team-response.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { UpdateNameDto } from './dto/update-name.dto';
+import { normalizeName } from '../common/utils/name';
+import { assertValidTeamName } from './team-name.policy';
 import * as bcrypt from 'bcrypt';
 
 import { JwtService } from '@nestjs/jwt';
 import { TEAM_TOKEN_EXPIRY } from '../common/constants';
+
+const TEAM_NAME_TAKEN = '이미 있는 팀 이름이에요.';
 
 @Injectable()
 export class TeamService {
@@ -42,28 +46,68 @@ export class TeamService {
         return new TeamResponseDto(team);
     }
 
+    // 비교용 이름으로 팀 찾기 (대소문자·띄어쓰기·특수문자 무시)
+    async findByName(name: string): Promise<Team | null> {
+        return this.prisma.team.findUnique({
+            where: { nameKey: normalizeName(name) },
+        });
+    }
+
+    // 팀 만들기 (등록·자동 등록 공용): 이름 검사 → 겹침 확인 → 해시 → 저장
+    async create(name: string, password: string): Promise<Team> {
+        assertValidTeamName(name);
+        const nameKey = normalizeName(name);
+        await this.assertNameKeyFree(nameKey);
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        return this.withNameConflict(() =>
+            this.prisma.team.create({
+                data: { name, nameKey, password: hashedPassword },
+            }),
+        );
+    }
+
     // 팀명 변경
-    async updateName(id: string, dto: UpdateNameDto): Promise<{ message: string }> {
+    async updateName(id: string, name: string): Promise<{ message: string }> {
         // 팀 존재 여부 확인 (관리자 토큰 등 잘못된 ID 접근 방어)
         const team = await this.prisma.team.findUnique({ where: { id } });
         if (!team) {
             throw new NotFoundException('팀을 찾을 수 없습니다.');
         }
 
-        // 중복 확인
-        const existing = await this.prisma.team.findUnique({
-            where: { name: dto.name },
-        });
-        if (existing && existing.id !== id) {
-            throw new ConflictException('이미 존재하는 팀 이름입니다.');
-        }
+        assertValidTeamName(name);
+        const nameKey = normalizeName(name);
+        await this.assertNameKeyFree(nameKey, id);
 
-        await this.prisma.team.update({
-            where: { id },
-            data: { name: dto.name },
-        });
+        await this.withNameConflict(() =>
+            this.prisma.team.update({
+                where: { id },
+                data: { name, nameKey },
+            }),
+        );
 
         return { message: '팀명이 변경되었습니다.' };
+    }
+
+    // 비교용 이름이 같은 다른 팀이 있으면 409
+    private async assertNameKeyFree(nameKey: string, exceptId?: string): Promise<void> {
+        const existing = await this.prisma.team.findUnique({ where: { nameKey } });
+        if (existing && existing.id !== exceptId) {
+            throw new ConflictException(TEAM_NAME_TAKEN);
+        }
+    }
+
+    // 동시에 같은 비교용 이름으로 저장하면 겹침 제약(P2002)이 걸림 → 같은 409로 바꿈
+    private async withNameConflict<T>(write: () => Promise<T>): Promise<T> {
+        try {
+            return await write();
+        } catch (e) {
+            if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+                throw new ConflictException(TEAM_NAME_TAKEN);
+            }
+            throw e;
+        }
     }
 
     // 비밀번호 변경 (기존 비밀번호 검증 포함)

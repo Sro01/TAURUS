@@ -20,5 +20,6 @@ import { ConfigService, ConfigModule } from '@nestjs/config';
   ],
   providers: [TeamService],
   controllers: [TeamController],
+  exports: [TeamService],
 })
 export class TeamModule { }

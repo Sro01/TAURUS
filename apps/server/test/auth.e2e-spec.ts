@@ -58,6 +58,22 @@ describe('Auth 모듈 (E2E)', () => {
 
             expect(res.status).toBe(400);
         });
+
+        it('A-13: 대소문자·특수문자만 다른 팀명 등록 시 409', async () => {
+            const res = await request(app.getHttpServer())
+                .post('/auth/register')
+                .send({ name: `${TEST_PREFIX}AUTH-TEAM`, password: '1234' });
+
+            expect(res.status).toBe(409);
+        });
+
+        it('A-14: 한글 자음·모음이 따로 들어간 팀명 등록 시 400', async () => {
+            const res = await request(app.getHttpServer())
+                .post('/auth/register')
+                .send({ name: `${TEST_PREFIX}밴드ㅋ`, password: '1234' });
+
+            expect(res.status).toBe(400);
+        });
     });
 
     // ─── 팀 인증 (verify) ──────────────────────
@@ -125,6 +141,24 @@ describe('Auth 모듈 (E2E)', () => {
                 .send({ name: teamName, password: 'wrong', autoRegister: true });
 
             expect(res.status).toBe(401);
+        });
+
+        it('A-15: 대소문자만 다른 팀명 + autoRegister: true → 기존 팀 인증 (isNewTeam: false)', async () => {
+            const res = await request(app.getHttpServer())
+                .post('/auth/verify')
+                .send({ name: `${TEST_PREFIX}AUTH_TEAM`, password: teamPassword, autoRegister: true });
+
+            expect([200, 201]).toContain(res.status);
+            const data = res.body.data ?? res.body;
+            expect(data.isNewTeam).toBe(false);
+        });
+
+        it('A-16: 미등록 + 자음·모음 팀명 + autoRegister: true → 400', async () => {
+            const res = await request(app.getHttpServer())
+                .post('/auth/verify')
+                .send({ name: `${TEST_PREFIX}ㅇㅌㅍ`, password: '1234', autoRegister: true });
+
+            expect(res.status).toBe(400);
         });
 
         it('A-12: verify 토큰으로 인증 API 접근 성공', async () => {

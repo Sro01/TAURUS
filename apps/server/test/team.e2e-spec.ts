@@ -95,6 +95,22 @@ describe('Team 모듈 (E2E)', () => {
             expect(res.status).toBe(409);
         });
 
+        it('T-16: 다른 팀과 대소문자·특수문자만 다른 팀명으로 변경 시 409', async () => {
+            const res = await request(app.getHttpServer())
+                .patch('/teams/me/name')
+                .set('Authorization', `Bearer ${teamToken}`)
+                .send({ name: `${TEST_PREFIX}DUP-NAME` });
+            expect(res.status).toBe(409);
+        });
+
+        it('T-17: 한글 자음·모음이 따로 들어간 팀명으로 변경 시 400', async () => {
+            const res = await request(app.getHttpServer())
+                .patch('/teams/me/name')
+                .set('Authorization', `Bearer ${teamToken}`)
+                .send({ name: `${TEST_PREFIX}밴드ㅋ` });
+            expect(res.status).toBe(400);
+        });
+
         it('T-11: 인증 없이 팀명 변경 시 401', async () => {
             const res = await request(app.getHttpServer())
                 .patch('/teams/me/name')
