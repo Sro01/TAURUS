@@ -1,5 +1,5 @@
 import { axiosClient } from './api';
-import { Team, UpdateNameDto, UpdatePasswordDto } from '../types/team';
+import { Team, TeamSearchResponse, UpdateNameDto, UpdatePasswordDto } from '../types/team';
 
 export const teamService = {
     /**
@@ -9,6 +9,13 @@ export const teamService = {
         const params = search ? { search } : {};
         // Interceptor에서 이미 data.data를 반환하므로 바로 리턴
         return await axiosClient.get('/teams', { params });
+    },
+
+    /**
+     * 팀 이름 검색 (같은 이름·비슷한 이름 판정은 서버가 해요)
+     */
+    search: async (q: string): Promise<TeamSearchResponse> => {
+        return await axiosClient.get('/teams/search', { params: { q } });
     },
 
     // 내 팀 상세 조회

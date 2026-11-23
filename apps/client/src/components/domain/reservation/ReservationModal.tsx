@@ -83,6 +83,7 @@ export default function ReservationModal({
           isSubmitting={isSubmitting}
           submitLabel={submitLabel}
           onCancel={onClose}
+          teamSearch
         />
       </div>
     </Modal>

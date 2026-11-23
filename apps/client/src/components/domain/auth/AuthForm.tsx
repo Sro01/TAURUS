@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Input, Button } from '../../common';
 import { User, Lock } from 'lucide-react';
+import TeamNameField from './TeamNameField';
+import { useTeamSearch } from '@/hooks/useTeamSearch';
+import { getTeamNameHint } from '@/utils/teamNameHint';
 
 interface AuthFormProps {
   initialName?: string;
@@ -10,10 +13,12 @@ interface AuthFormProps {
   submitLabel?: string;
   hideNameField?: boolean;
   onCancel?: () => void;
+  /** 팀 이름 칸을 검색 드롭다운으로 바꿔요 (기본 false) */
+  teamSearch?: boolean;
 }
 
 // 공백 및 특수문자 방지 (영문 대소문자, 한글, 숫자만 허용)
-const VALID_PATTERN = /^[a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ]+$/;
+const VALID_PATTERN = /^[a-zA-Z0-9가-힣]+$/;
 
 function validate(value: string, label: string): string {
   if (!value) return `${label}을(를) 입력해주세요.`;
@@ -30,22 +35,35 @@ export default function AuthForm({
   submitLabel = '확인',
   hideNameField = false,
   onCancel,
+  teamSearch = false,
 }: AuthFormProps) {
   const [name, setName] = useState(initialName);
   const [password, setPassword] = useState(initialPassword);
   const [nameError, setNameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  // 검색을 쓰지 않으면 빈 입력으로 불러 요청이 나가지 않아요
+  const searching = teamSearch && !hideNameField;
+  const search = useTeamSearch(searching ? name : '');
+  const hint = getTeamNameHint(searching ? search : null, name);
 
   useEffect(() => {
     if (initialName) setName(initialName);
     if (initialPassword) setPassword(initialPassword);
   }, [initialName, initialPassword]);
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const changeName = (value: string) => {
     setName(value);
     // 입력 중에도 실시간 검증
     if (nameError) setNameError(validate(value, '팀 이름'));
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => changeName(e.target.value);
+
+  const handleSelectTeam = (teamName: string) => {
+    changeName(teamName);
+    passwordRef.current?.focus();
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,13 +84,27 @@ export default function AuthForm({
 
     if (newNameError || newPasswordError) return;
 
-    await onSubmit(name, password);
+    // 서버가 같은 팀이라고 한 이름이 있으면 그 이름으로, 서버가 막은 이름이면 제출하지 않아요
+    if (hint.blocked) return;
+
+    await onSubmit(hint.submitName, password);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-4">
-        {!hideNameField && (
+        {!hideNameField && teamSearch && (
+          <TeamNameField
+            label="팀명"
+            placeholder="합주할 곡명, 가수명, 팀명 등 입력 (공백, 특수문자, 중복 불가)"
+            value={name}
+            onChange={changeName}
+            onSelectTeam={handleSelectTeam}
+            hint={hint}
+            error={nameError}
+          />
+        )}
+        {!hideNameField && !teamSearch && (
           <Input
             label="팀명"
             placeholder="합주할 곡명, 가수명, 팀명 등 입력 (공백, 특수문자, 중복 불가)"
@@ -83,6 +115,7 @@ export default function AuthForm({
           />
         )}
         <Input
+          ref={passwordRef}
           label="비밀번호"
           type="password"
           placeholder="비밀번호 입력 (4자리 이상)"

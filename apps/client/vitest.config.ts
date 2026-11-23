@@ -1,7 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
-// utils/jam 순수 함수 전용 (React·DOM 없음)
+// 순수 함수 전용: utils/jam, utils/teamNameHint (React·DOM 없음)
 export default defineConfig({
   resolve: {
     alias: {
@@ -10,7 +10,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/utils/jam/**/*.test.ts'],
+    include: ['src/utils/jam/**/*.test.ts', 'src/utils/teamNameHint.test.ts'],
     passWithNoTests: true,
   },
 })

@@ -22,3 +22,20 @@ export interface UpdatePasswordDto {
     currentPassword: string;
     password: string;
 }
+
+/**
+ * 팀 이름 검색 항목
+ */
+export interface TeamSearchItem {
+    id: string;
+    name: string;
+}
+
+/**
+ * 팀 이름 검색 응답 (GET /teams/search)
+ */
+export interface TeamSearchResponse {
+    problem: 'LOOSE_JAMO' | 'EMPTY_KEY' | null;
+    exact: TeamSearchItem | null;
+    matches: TeamSearchItem[];
+}
