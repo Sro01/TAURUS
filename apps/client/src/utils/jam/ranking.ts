@@ -1,15 +1,36 @@
 /**
  * 우선순위 카드 (스펙 5.3) — 이어지는 시간 묶기, 정렬 3종, 꼭 와야 하는 사람 거르기, 대기 적은 칸 고르기.
- * 본문은 utils/jam 담당이 채운다 (지금은 시그니처만).
  */
 import type { CellBlock, JamParticipant, PriorityCard, SlotGrid, SortKey } from '../../types/jam';
+import { SLOT_COUNT, isSlotOn } from './slots';
 
 /** 최대 카드 수 (정렬 뒤 자름) */
 export const MAX_PRIORITY_CARDS = 8;
 
-const notImplemented = (): never => {
-    throw new Error('not implemented');
+/** 그 칸에 되는 참여자 id (participants 순서). 막힌 칸은 빈 배열 */
+function openIdsAt(
+    participants: JamParticipant[],
+    blocked: SlotGrid<CellBlock>,
+    dayIndex: number,
+    hourIndex: number,
+): string[] {
+    if (blocked[dayIndex][hourIndex] !== null) return [];
+    return participants
+        .filter((p) => isSlotOn(p.slots[dayIndex] ?? 0, hourIndex))
+        .map((p) => p.id);
+}
+
+/** 정렬 기준 (스펙 5.3). 같은 (날, 시작 시각)인 카드는 없으므로 완전 동점이 없다 */
+const comparators: Record<SortKey, (a: PriorityCard, b: PriorityCard) => number> = {
+    people: (a, b) => b.participantIds.length - a.participantIds.length || byTime(a, b),
+    time: (a, b) => byTime(a, b),
+    length: (a, b) =>
+        b.length - a.length || b.participantIds.length - a.participantIds.length || byTime(a, b),
 };
+
+function byTime(a: PriorityCard, b: PriorityCard): number {
+    return a.dayIndex - b.dayIndex || a.startHourIndex - b.startHourIndex;
+}
 
 /**
  * 카드 만들기.
@@ -26,6 +47,39 @@ export function buildPriorityCards(
     required: string[],
     sort: SortKey,
 ): PriorityCard[] {
-    void participants; void blocked; void pending; void required; void sort;
-    return notImplemented();
+    const cards: PriorityCard[] = [];
+
+    for (let d = 0; d < blocked.length; d++) {
+        let current: { start: number; ids: string[]; signature: string; recommended: number } | null = null;
+
+        const close = (end: number) => {
+            if (!current) return;
+            cards.push({
+                dayIndex: d,
+                startHourIndex: current.start,
+                length: end - current.start,
+                participantIds: current.ids,
+                recommendedHourIndex: current.recommended,
+            });
+            current = null;
+        };
+
+        for (let h = 0; h < SLOT_COUNT; h++) {
+            const ids = openIdsAt(participants, blocked, d, h);
+            const good = ids.length > 0 && required.every((id) => ids.includes(id));
+            const signature = ids.join(',');
+            const waiting = pending[d]?.[h] ?? 0;
+
+            if (good && current && current.signature === signature) {
+                // 이어지는 같은 사람들 구간. 대기가 더 적을 때만 추천을 옮겨 같으면 이른 칸이 남는다
+                if (waiting < (pending[d]?.[current.recommended] ?? 0)) current.recommended = h;
+                continue;
+            }
+            close(h);
+            if (good) current = { start: h, ids, signature, recommended: h };
+        }
+        close(SLOT_COUNT);
+    }
+
+    return cards.sort(comparators[sort]).slice(0, MAX_PRIORITY_CARDS);
 }
