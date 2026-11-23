@@ -103,9 +103,9 @@ export default function TimeSlot(props: TimeSlotProps) {
 
   return (
     <div className="relative pl-6 pb-2 group">
-      {/* 연결선 */}
+      {/* 연결선: 이 점 가운데에서 다음 칸 점 가운데까지 (점 top 20px + 반지름 8px) */}
       {!isLast && (
-        <div className={`absolute left-[19px] top-5 bottom-[-8px] w-[2px] transition-colors duration-300 bg-neutral-800`} />
+        <div className={`absolute left-[19px] top-7 -bottom-7 w-[2px] transition-colors duration-300 bg-neutral-800`} />
       )}
 
       {/* 점 */}
