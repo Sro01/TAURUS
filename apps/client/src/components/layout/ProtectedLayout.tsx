@@ -39,6 +39,7 @@ export default function ProtectedLayout({ allowedRoles }: ProtectedLayoutProps) 
         items={[
           { label: '바로 예약', path: ROUTES.INSTANT_RESERVATION },
           { label: '미리 예약', path: ROUTES.PRE_RESERVATION },
+          { label: '합주 시간 맞추기', path: ROUTES.JAM_CREATE },
           { label: '팀 관리', path: ROUTES.TEAMS_ME },
           { label: '관리자', path: ROUTES.ADMIN },
         ]}

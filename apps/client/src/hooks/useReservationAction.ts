@@ -7,9 +7,11 @@ type ReservationType = 'PRE' | 'INSTANT';
 interface UseReservationActionProps {
     type: ReservationType;
     onSuccess?: () => void;
+    /** 있으면 오류 alert 대신 호출 (성공 alert는 그대로) */
+    onError?: (error: unknown) => void;
 }
 
-export function useReservationAction({ type, onSuccess }: UseReservationActionProps) {
+export function useReservationAction({ type, onSuccess, onError }: UseReservationActionProps) {
     const { loginTeam } = useAuth();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [pendingReservation, setPendingReservation] = useState<{
@@ -61,6 +63,10 @@ export function useReservationAction({ type, onSuccess }: UseReservationActionPr
             if (onSuccess) onSuccess();
         } catch (error: any) {
             console.error(error);
+            if (onError) {
+                onError(error);
+                return;
+            }
             const message = error.response?.data?.message || '예약 처리에 실패했습니다.';
             alert(`오류: ${message}`);
         }

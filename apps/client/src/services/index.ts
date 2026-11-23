@@ -4,3 +4,5 @@ export * from './reservation.service';
 export * from './team.service';
 export * from './week.service';
 export * from './admin.service';
+export * from './jamApi';
+export * from './jam.service';

@@ -10,6 +10,8 @@ import AdminPage from './pages/admin/AdminPage';
 import NotFoundPage from './pages/not-found/NotFoundPage';
 import LoginPage from './pages/auth/LoginPage';
 import DesignSystemTestPage from './pages/design-system-test';
+import JamCreatePage from './pages/jam/JamCreatePage';
+import JamRoomPage from './pages/jam/JamRoomPage';
 import { ROUTES } from './constants/routes';
 
 // Public Routes: 누구나 접근 가능
@@ -35,6 +37,14 @@ const publicRoutes: RouteObject = {
       {
         path: ROUTES.DESIGN_TEST,
         element: <DesignSystemTestPage />,
+      },
+      {
+        path: ROUTES.JAM_CREATE,
+        element: <JamCreatePage />,
+      },
+      {
+        path: ROUTES.JAM_ROOM,
+        element: <JamRoomPage />,
       },
       {
         path: ROUTES.NOT_FOUND,

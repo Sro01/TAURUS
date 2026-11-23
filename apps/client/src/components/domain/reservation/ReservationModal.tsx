@@ -14,6 +14,8 @@ interface ReservationModalProps {
   isSubmitting?: boolean;
   teamName?: string | null;
   teamPassword?: string | null;
+  title?: string; // 기본 "예약 신청"
+  submitLabel?: string; // 기본 "예약하기"
 }
 
 export default function ReservationModal({
@@ -27,6 +29,8 @@ export default function ReservationModal({
   teamName = '',
   teamPassword = '',
   showWaitlist = true,
+  title = '예약 신청',
+  submitLabel = '예약하기',
 }: ReservationModalProps & { showWaitlist?: boolean }) {
   // 해당 시간대의 기존 예약 확인 (대기열)
   const pendingTeams = existingReservations
@@ -42,7 +46,7 @@ export default function ReservationModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="예약 신청"
+      title={title}
     >
       <div className="space-y-6">
         {/* 선택된 시간 정보 */}
@@ -77,7 +81,7 @@ export default function ReservationModal({
           initialPassword={teamPassword || ''}
           onSubmit={onSubmit}
           isSubmitting={isSubmitting}
-          submitLabel="예약하기"
+          submitLabel={submitLabel}
           onCancel={onClose}
         />
       </div>
