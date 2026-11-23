@@ -2,7 +2,8 @@ import { axiosClient } from './api';
 import {
     AdminSettings,
     UpdateSettingsDto,
-    CreateAdminReservationDto
+    CreateAdminReservationDto,
+    CreateAdminReservationsResult,
 } from '../types/admin';
 import { Reservation } from '../types/reservation';
 
@@ -33,10 +34,10 @@ export const adminService = {
     },
 
     /**
-     * 관리자 예약 생성 (강제)
+     * 관리자 예약 생성 (강제, 여러 칸 한 번에). 이미 관리자 예약이 있는 칸은 skipped로 온다
      * POST /admin/reservations
      */
-    createReservation: async (data: CreateAdminReservationDto): Promise<Reservation> => {
+    createReservations: async (data: CreateAdminReservationDto): Promise<CreateAdminReservationsResult> => {
         return await axiosClient.post('/admin/reservations', data);
     },
 
