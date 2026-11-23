@@ -3,6 +3,10 @@
  * 서버 API 모양은 스펙 4.4를 따른다. 날짜는 모두 KST 'YYYY-MM-DD' 문자열.
  */
 
+/** 방 제목 최대 글자 수, 인원 최대값 (스펙 3.1) */
+export const JAM_MAX_TITLE = 15;
+export const JAM_MAX_HEADCOUNT = 30;
+
 /** 방 만들 때 기간: 이번 주 / 다음 주 / 이번 주 + 다음 주 */
 export type JamRange = 'this' | 'next' | 'both';
 

@@ -16,10 +16,29 @@ export const FULL_DAY_MASK = (1 << SLOT_COUNT) - 1;
 export const JAM_TIMEZONE = 'Asia/Seoul';
 
 const DATE_FORMAT = 'YYYY-MM-DD';
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const pad2 = (n: number): string => String(n).padStart(2, '0');
 
-/** 'YYYY-MM-DD'를 달력 날짜로만 다루는 UTC 자정 (브라우저 시간대와 무관) */
-const calendarDay = (date: string) => dayjs.utc(date, DATE_FORMAT, true);
+/** 한 주 = 7일. 방은 7일(한 주) 또는 14일(두 주) */
+export const DAYS_PER_WEEK = 7;
+
+/**
+ * 'YYYY-MM-DD'를 달력 날짜로만 다루는 UTC 자정 (브라우저 시간대와 무관).
+ * 형식이 맞지 않으면 유효하지 않은 값(isValid() === false)을 돌려준다.
+ */
+export const calendarDay = (date: string) => (DATE_PATTERN.test(date) ? dayjs.utc(date) : dayjs.utc(Number.NaN));
+
+/** 오늘 (KST) 'YYYY-MM-DD' */
+export const todayKst = (): string => dayjs().tz(JAM_TIMEZONE).format(DATE_FORMAT);
+
+/** 기간 일수(days) 안에서 주 weekIndex(0부터)에 속한 날짜 인덱스들 (마지막 주는 7일보다 짧을 수 있음) */
+export function weekDayIndexes(days: number, weekIndex: number): number[] {
+    const first = weekIndex * DAYS_PER_WEEK;
+    return Array.from({ length: Math.max(0, Math.min(DAYS_PER_WEEK, days - first)) }, (_, i) => first + i);
+}
+
+/** 기간의 주 수 (7일 → 1, 14일 → 2) */
+export const weekCountOf = (range: JamDateRange): number => Math.ceil(dayCount(range) / DAYS_PER_WEEK);
 
 /** 시각(9~22) → 시간 인덱스(0~13). 범위 밖이면 -1 */
 export function hourToIndex(hour: number): number {
@@ -96,8 +115,8 @@ export function slotStartIso(startDate: string, ref: SlotRef): string {
     return dayjs.tz(`${date} ${pad2(indexToHour(ref.hourIndex))}:00:00`, JAM_TIMEZONE).format();
 }
 
-/** 서버 주차 경계 시각(+09:00 ISO) → KST 날짜 'YYYY-MM-DD' */
-const kstDate = (iso: string): string => dayjs(iso).tz(JAM_TIMEZONE).format(DATE_FORMAT);
+/** 서버 시각(+09:00 ISO 등) → KST 날짜 'YYYY-MM-DD'. 브라우저 시간대와 무관 */
+export const kstDate = (iso: string): string => dayjs(iso).tz(JAM_TIMEZONE).format(DATE_FORMAT);
 
 /**
  * 날짜가 서버 주차의 main/next 중 어디에 속하는지 (날짜 범위로 판단). 둘 다 아니면 null.

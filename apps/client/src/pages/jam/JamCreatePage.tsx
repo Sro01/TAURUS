@@ -11,15 +11,15 @@ import JamShareSheet from '@/components/domain/jam/JamShareSheet';
 import { jamRoomPath } from '@/constants/routes';
 import { jamService } from '@/services/jam.service';
 import { getJamErrorMessage } from '@/services/jamApi';
-import type { JamRange } from '@/types/jam';
+import { JAM_MAX_HEADCOUNT, JAM_MAX_TITLE, type JamRange } from '@/types/jam';
 import type { MainWeeksResponse } from '@/types/week';
-import dayjs from '@/utils/dayjs';
+import { monthDay } from '@/components/domain/jam/JamRoomFormat';
+import { kstDate } from '@/utils/jam/slots';
 
 const MIN_HEADCOUNT = 1;
-const MAX_HEADCOUNT = 30;
-const MAX_TITLE = 15;
 
-const fmt = (date: string) => dayjs(date).format('MM.DD');
+// 서버 주차 시각(+09:00)을 KST 날짜로 바꿔 표시 (브라우저 시간대와 무관)
+const fmt = (iso: string) => monthDay(kstDate(iso));
 
 // 방 만들기 (스펙 5.1, 시안 1)
 export default function JamCreatePage() {
@@ -88,7 +88,7 @@ export default function JamCreatePage() {
         <Input
           id="jam-title"
           value={title}
-          maxLength={MAX_TITLE}
+          maxLength={JAM_MAX_TITLE}
           placeholder="예: 신곡 첫 합주"
           autoComplete="off"
           className="h-12"
@@ -124,8 +124,8 @@ export default function JamCreatePage() {
             variant="ghost"
             aria-label="한 명 늘리기"
             className="h-full rounded-xl"
-            disabled={unknownCount || headcount >= MAX_HEADCOUNT}
-            onClick={() => setHeadcount((n) => Math.min(MAX_HEADCOUNT, n + 1))}
+            disabled={unknownCount || headcount >= JAM_MAX_HEADCOUNT}
+            onClick={() => setHeadcount((n) => Math.min(JAM_MAX_HEADCOUNT, n + 1))}
           >
             <Plus className="size-5" aria-hidden="true" />
           </Button>

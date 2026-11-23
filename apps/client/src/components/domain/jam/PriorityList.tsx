@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils';
 import type { CellBlock, JamParticipant, JamRoom, PriorityCard, SlotGrid, SlotRef, SortKey } from '@/types/jam';
 import type { MainWeeksResponse } from '@/types/week';
 import { buildPriorityCards } from '@/utils/jam/ranking';
-import { dayDate, indexToHour, reservationKindOf, weekSlotOf } from '@/utils/jam/slots';
-import { SORT_OPTIONS, dateLabel, hourLabel } from './JamRoomFormat';
+import { dayDate, indexToHour, reservationKindOf } from '@/utils/jam/slots';
+import { SORT_OPTIONS, dateLabel, hourLabel, weekTag } from './JamRoomFormat';
 import JamRoomFilterSheet from './JamRoomFilterSheet';
 import JamRoomSortSheet from './JamRoomSortSheet';
 
@@ -23,8 +23,6 @@ interface PriorityListProps {
   onBook: (ref: SlotRef) => void;
   onRegister: () => void;
 }
-
-const WEEK_TAG: Record<'main' | 'next', string> = { main: '이번 주', next: '다음 주' };
 
 /** 우선순위 카드 + 정렬 + 꼭 와야 하는 사람 (계산은 utils/jam/ranking 결과를 그린다) */
 export default function PriorityList({ room, blocked, pending, weeks, canRegister, onBook, onRegister }: PriorityListProps) {
@@ -148,7 +146,7 @@ function PriorityCardView({ card, rank, room, weeks, onBook }: PriorityCardViewP
   const unavailable = participants.filter((p: JamParticipant) => !card.participantIds.includes(p.id));
 
   // 이번 주/다음 주 표시와 예약 종류는 저장하지 않고 볼 때마다 서버 주차 기준으로 붙인다 (지나간 주는 날짜만)
-  const weekSlot = weeks ? weekSlotOf(date, weeks) : null;
+  const weekText = weekTag(date, weeks);
   const kind = room.ended || !weeks ? 'none' : reservationKindOf(date, weeks);
 
   const summary = [
@@ -173,7 +171,7 @@ function PriorityCardView({ card, rank, room, weeks, onBook }: PriorityCardViewP
         <span className="min-w-0 flex-1 text-base font-extrabold">
           {dateLabel(date)} {hourLabel(startHour)} ~ {hourLabel(startHour + card.length)}
         </span>
-        {weekSlot && <span className="whitespace-nowrap text-xs text-muted-foreground">{WEEK_TAG[weekSlot]}</span>}
+        {weekText && <span className="whitespace-nowrap text-xs text-muted-foreground">{weekText}</span>}
       </div>
       <span className="text-[13px] text-muted-foreground">{summary}</span>
       <div className="flex flex-wrap gap-1">

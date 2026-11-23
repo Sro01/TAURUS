@@ -24,7 +24,8 @@ import type {
 } from '@/types/jam';
 import type { MainWeeksResponse } from '@/types/week';
 import dayjs from '@/utils/dayjs';
-import { JAM_TIMEZONE, dayDate, indexToHour, reservationKindOf, slotStartIso } from '@/utils/jam/slots';
+import { dayDate, indexToHour, kstDate, reservationKindOf, slotStartIso } from '@/utils/jam/slots';
+import { dateLabel, hourLabel } from '@/components/domain/jam/JamRoomFormat';
 
 export type JamRoomStatus = 'loading' | 'ready' | 'notFound' | 'error';
 
@@ -306,17 +307,13 @@ export function useJamBooking(jam: JamRoomState, notify: (message: string) => vo
     // 모달에 넘기는 목록은 그 날짜 예약만 (모달은 HH:mm만 비교한다)
     const dayReservations = useMemo(
         () =>
-            date
-                ? reservations.filter(
-                      (r) => dayjs(r.startTime).tz(JAM_TIMEZONE).format('YYYY-MM-DD') === date,
-                  )
-                : [],
+            date ? reservations.filter((r) => kstDate(r.startTime) === date) : [],
         [reservations, date],
     );
 
     const verb = kind === 'pre' ? '미리 예약' : '바로 예약';
-    const hourText = target ? `${String(indexToHour(target.hourIndex)).padStart(2, '0')}:00` : '';
-    const dateText = date ? dayjs.utc(date).format('M월 D일 (ddd)') : '';
+    const hourText = target ? hourLabel(indexToHour(target.hourIndex)) : '';
+    const dateText = date ? dateLabel(date) : '';
 
     const modalProps = {
         isOpen: isAuthModalOpen && target !== null && kind !== 'none',

@@ -12,13 +12,7 @@ import JamShareSheet from '@/components/domain/jam/JamShareSheet';
 import PaintGrid from '@/components/domain/jam/PaintGrid';
 import PeopleChips from '@/components/domain/jam/PeopleChips';
 import PriorityList from '@/components/domain/jam/PriorityList';
-import {
-  defaultWeekIndex,
-  todayKst,
-  rangeLabel,
-  weekTabLabels,
-  whenLabel,
-} from '@/components/domain/jam/JamRoomFormat';
+import { defaultWeekIndex, rangeLabel, weekTabLabels, whenLabel } from '@/components/domain/jam/JamRoomFormat';
 import ReservationModal from '@/components/domain/reservation/ReservationModal';
 import { jamRoomPath, ROUTES } from '@/constants/routes';
 import { useJamBooking, useJamRoom } from '@/hooks/useJamRoom';
@@ -26,7 +20,7 @@ import { getJamErrorMessage } from '@/services/jamApi';
 import type { SlotRef, UpdateJamRoomInput } from '@/types/jam';
 import { availableAt } from '@/utils/jam/heatmap';
 import { buildBlocked, buildPendingCounts } from '@/utils/jam/blocked';
-import { countOnSlots, dayDate, indexToHour, reservationKindOf } from '@/utils/jam/slots';
+import { countOnSlots, dayDate, indexToHour, reservationKindOf, todayKst } from '@/utils/jam/slots';
 
 type Step = 'room' | 'login' | 'paint' | 'priority';
 

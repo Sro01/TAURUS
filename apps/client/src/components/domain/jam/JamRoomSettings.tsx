@@ -15,10 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { getJamErrorMessage } from '@/services/jamApi';
-import type { JamRoom, UpdateJamRoomInput } from '@/types/jam';
-
-const MAX_TITLE = 15;
-const MAX_HEADCOUNT = 30;
+import { JAM_MAX_HEADCOUNT, JAM_MAX_TITLE, type JamRoom, type UpdateJamRoomInput } from '@/types/jam';
 
 interface JamRoomSettingsProps {
   open: boolean;
@@ -107,7 +104,7 @@ export default function JamRoomSettings({ open, onOpenChange, room, onSave, onLe
             <Input
               id="jam-room-title"
               value={title}
-              maxLength={MAX_TITLE}
+              maxLength={JAM_MAX_TITLE}
               autoComplete="off"
               className="h-12 bg-background"
               onChange={(e) => setTitle(e.target.value)}
@@ -142,8 +139,8 @@ export default function JamRoomSettings({ open, onOpenChange, room, onSave, onLe
                 variant="ghost"
                 aria-label="한 명 늘리기"
                 className="h-full rounded-xl"
-                disabled={unknownCount || headcount >= MAX_HEADCOUNT}
-                onClick={() => setHeadcount((n) => Math.min(MAX_HEADCOUNT, n + 1))}
+                disabled={unknownCount || headcount >= JAM_MAX_HEADCOUNT}
+                onClick={() => setHeadcount((n) => Math.min(JAM_MAX_HEADCOUNT, n + 1))}
               >
                 <Plus className="size-5" aria-hidden="true" />
               </Button>

@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import type { CellBlock, SlotGrid } from '@/types/jam';
-import { SLOT_COUNT, dayDate, gridToSlots, indexToHour, slotsToGrid } from '@/utils/jam/slots';
+import { SLOT_COUNT, dayDate, gridToSlots, indexToHour, slotsToGrid, weekDayIndexes } from '@/utils/jam/slots';
 import JamRoomWeekTabs from './JamRoomWeekTabs';
-import { DAYS_PER_WEEK, dayOfMonth, dowLabel } from './JamRoomFormat';
+import { dayOfMonth, dowLabel, padHour } from './JamRoomFormat';
 
 type PaintMode = 'can' | 'cant';
 
@@ -80,9 +80,7 @@ export default function PaintGrid({
   const [mode, setMode] = useState<PaintMode>('can');
   const [drag, setDrag] = useState<Drag | null>(null);
 
-  const dayIndexes = Array.from({ length: DAYS_PER_WEEK }, (_, i) => weekIndex * DAYS_PER_WEEK + i).filter(
-    (d) => d < days,
-  );
+  const dayIndexes = weekDayIndexes(days, weekIndex);
 
   // 놓을 때 한 번에 적용
   useEffect(() => {
@@ -217,7 +215,7 @@ export default function PaintGrid({
               onClick={() => pickHour(h)}
               className="h-[30px] p-0 text-left text-[11px] tabular-nums text-muted-foreground outline-none focus-visible:outline-2 focus-visible:outline-foreground"
             >
-              {String(indexToHour(h)).padStart(2, '0')}시
+              {padHour(indexToHour(h))}시
             </button>
             {dayIndexes.map((d) => {
               const block = blocked[d]?.[h] ?? null;

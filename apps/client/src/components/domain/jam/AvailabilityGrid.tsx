@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import type { CellBlock, HeatLevel, JamParticipant, SlotGrid, SlotRef } from '@/types/jam';
 import { countGrid, heatLevel } from '@/utils/jam/heatmap';
-import { SLOT_COUNT, dayDate, indexToHour, isSlotOn } from '@/utils/jam/slots';
-import { DAYS_PER_WEEK, dayOfMonth, dowLabel } from './JamRoomFormat';
+import { SLOT_COUNT, dayDate, indexToHour, isSlotOn, weekDayIndexes } from '@/utils/jam/slots';
+import { dayOfMonth, dowLabel, padHour } from './JamRoomFormat';
 
 interface AvailabilityGridProps {
   startDate: string;
@@ -51,10 +51,7 @@ export default function AvailabilityGrid({
   const counts = useMemo(() => countGrid(participants, blocked.length), [participants, blocked.length]);
   const focus = participants.find((p) => p.id === focusId) ?? null;
 
-  const firstDay = weekIndex * DAYS_PER_WEEK;
-  const dayIndexes = Array.from({ length: DAYS_PER_WEEK }, (_, i) => firstDay + i).filter(
-    (dayIndex) => dayIndex < blocked.length,
-  );
+  const dayIndexes = weekDayIndexes(blocked.length, weekIndex);
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -103,7 +100,7 @@ export default function AvailabilityGrid({
         {Array.from({ length: SLOT_COUNT }, (_, hourIndex) => (
           <div key={hourIndex} className="grid grid-cols-[30px_repeat(7,minmax(0,1fr))] gap-[3px]">
             <span className="flex items-center text-[11px] tabular-nums text-[#8b8b93]">
-              {String(indexToHour(hourIndex)).padStart(2, '0')}
+              {padHour(indexToHour(hourIndex))}
             </span>
             {dayIndexes.map((dayIndex) => {
               const block = blocked[dayIndex]?.[hourIndex] ?? null;
