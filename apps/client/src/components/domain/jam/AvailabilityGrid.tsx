@@ -123,7 +123,7 @@ export default function AvailabilityGrid({
                   onClick={() => onSelect({ dayIndex, hourIndex })}
                   style={block === 'booked' ? { backgroundImage: BOOKED_STRIPES } : undefined}
                   className={cn(
-                    'relative h-6 rounded-[5px] p-0 text-[11px] font-extrabold tabular-nums outline-none focus-visible:outline-2 focus-visible:outline-foreground',
+                    'relative h-6 rounded-[5px] p-0 text-[11px] font-extrabold tabular-nums focus-visible:outline-2 focus-visible:outline-foreground',
                     block === 'past'
                       ? 'bg-[#111113]'
                       : block === 'booked'

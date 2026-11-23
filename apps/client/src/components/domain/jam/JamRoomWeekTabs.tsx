@@ -10,7 +10,7 @@ interface JamRoomWeekTabsProps {
 export default function JamRoomWeekTabs({ labels, value, onChange }: JamRoomWeekTabsProps) {
   return (
     <Tabs value={String(value)} onValueChange={(next) => onChange(Number(next))}>
-      <TabsList aria-label="주차" className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl bg-card p-1">
+      <TabsList aria-label="주차" className="grid h-auto w-full grid-cols-2 group-data-[orientation=horizontal]/tabs:h-auto gap-1 rounded-xl bg-card p-1">
         {labels.map((label, index) => (
           <TabsTrigger
             key={index}

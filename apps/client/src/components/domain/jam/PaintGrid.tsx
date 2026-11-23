@@ -194,7 +194,7 @@ export default function PaintGrid({
               aria-label={`${dow}요일 전체 칠하기`}
               onClick={() => pickDay(d)}
               className={cn(
-                'flex flex-col items-center gap-px rounded-lg py-1 outline-none focus-visible:outline-2 focus-visible:outline-foreground disabled:opacity-40',
+                'flex flex-col items-center gap-px rounded-lg py-1 focus-visible:outline-2 focus-visible:outline-foreground disabled:opacity-40',
                 dow === '일' ? 'text-[#f87171]' : dow === '토' ? 'text-[#60a5fa]' : 'text-zinc-300',
                 date === today && 'bg-secondary',
               )}
@@ -213,7 +213,7 @@ export default function PaintGrid({
               type="button"
               aria-label={`${indexToHour(h)}시 한 줄 칠하기`}
               onClick={() => pickHour(h)}
-              className="h-[30px] p-0 text-left text-[11px] tabular-nums text-muted-foreground outline-none focus-visible:outline-2 focus-visible:outline-foreground"
+              className="h-[30px] p-0 text-left text-[11px] tabular-nums text-muted-foreground focus-visible:outline-2 focus-visible:outline-foreground"
             >
               {padHour(indexToHour(h))}시
             </button>
@@ -246,7 +246,7 @@ export default function PaintGrid({
                   }}
                   style={block === 'booked' ? { backgroundImage: BOOKED_STRIPES } : undefined}
                   className={cn(
-                    'flex h-[30px] items-center justify-center rounded-md p-0 text-xs outline-none focus-visible:outline-2 focus-visible:outline-foreground',
+                    'flex h-[30px] items-center justify-center rounded-md p-0 text-xs focus-visible:outline-2 focus-visible:outline-foreground',
                     block === 'past' && 'bg-[#111113]',
                     block === 'booked' && 'bg-transparent',
                     block === null &&
