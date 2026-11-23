@@ -116,12 +116,20 @@ export default function TeamNameField({
             (cmdk 소스의 selectFirstItem). value를 controlled로 넘겨도 cmdk가 자기 값을 바꾼 걸 우리가 무시하면
             화면과 cmdk 값이 어긋나서, 새 팀 줄을 DOM 맨 앞에 두고 화면에서만 맨 아래로(order-last) 보내요.
           */}
-          <CommandList className="max-h-[220px] [&>[cmdk-list-sizer]]:flex [&>[cmdk-list-sizer]]:flex-col">
+          {/*
+            화살표로 가리킨 줄은 cmdk가 scrollIntoView({ block: 'nearest' })로 보이게 해요(cmdk 소스 scrollSelectedIntoView).
+            맨 아래에 붙은 새 팀 줄(44px)에 가리지 않게 아래 scroll-padding을 그 높이만큼 주고,
+            새 팀 줄 자신은 scroll-margin을 음수로 줘서 가리켜졌을 때 목록이 밀리지 않게 해요.
+          */}
+          <CommandList
+            className="max-h-[220px] [&>[cmdk-list-sizer]]:flex [&>[cmdk-list-sizer]]:flex-col"
+            style={{ scrollPaddingBottom: '2.75rem' }}
+          >
             {showNewTeam && (
               <CommandItem
                 value={NEW_TEAM_VALUE}
                 onSelect={() => setOpen(false)}
-                className="sticky bottom-0 order-last h-11 rounded-none border-t border-white/10 bg-card px-4 text-base data-[selected=true]:bg-accent"
+                className="sticky bottom-0 order-last -scroll-mb-11 h-11 rounded-none border-t border-white/10 bg-card px-4 text-base data-[selected=true]:bg-accent"
               >
                 <span className="truncate">'{value}' 새 팀으로 예약</span>
               </CommandItem>
