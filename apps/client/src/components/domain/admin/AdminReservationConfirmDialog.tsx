@@ -101,7 +101,7 @@ export default function AdminReservationConfirmDialog({
                     {overwritten.map((slot) => (
                       <li key={slot.startTime} className="flex justify-between gap-4">
                         <span className="shrink-0 text-foreground">{slotLabel(slot.startTime)}</span>
-                        <span className="truncate">{slot.teams.map(teamLabel).join(', ')}</span>
+                        <span className="truncate text-foreground">{slot.teams.map(teamLabel).join(', ')}</span>
                       </li>
                     ))}
                   </ul>
