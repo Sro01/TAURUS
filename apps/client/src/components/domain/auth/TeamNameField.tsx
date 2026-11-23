@@ -36,20 +36,11 @@ export default function TeamNameField({
 }: TeamNameFieldProps) {
   // 사용자가 입력을 바꾼 뒤에만 열어요. 미리 채워진 이름으로는 열리지 않아요.
   const [open, setOpen] = useState(false);
-  const [highlighted, setHighlighted] = useState('');
   const anchorRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { items, showNewTeam } = hint;
   const listVisible = open && items.length > 0;
-
-  // 아무 줄도 고르지 않고 Enter를 눌러도 엉뚱한 팀으로 바뀌지 않게, 새 팀 줄을 먼저 가리켜요.
-  const rowValues = [...items.map((t) => t.id), ...(showNewTeam ? [NEW_TEAM_VALUE] : [])];
-  const activeValue = rowValues.includes(highlighted)
-    ? highlighted
-    : showNewTeam
-      ? NEW_TEAM_VALUE
-      : (rowValues[0] ?? '');
 
   // 서버가 막은 이름(problem)의 문구는 폼 검증 오류보다 먼저 보여요
   const message = hint.isError ? hint.message : error || (listVisible ? null : hint.message);
@@ -57,7 +48,6 @@ export default function TeamNameField({
 
   const handleChange = (next: string) => {
     onChange(next);
-    setHighlighted('');
     setOpen(true);
   };
 
@@ -76,8 +66,6 @@ export default function TeamNameField({
       shouldFilter={false}
       loop
       vimBindings={false}
-      value={activeValue}
-      onValueChange={setHighlighted}
       label={label}
       className="h-auto overflow-visible rounded-none bg-transparent text-left"
     >
@@ -122,7 +110,22 @@ export default function TeamNameField({
             if (anchorRef.current?.contains(e.target as Node)) e.preventDefault();
           }}
         >
-          <CommandList className="max-h-[220px]">
+          {/*
+            열릴 때와 목록이 바뀔 때 "새 팀으로 예약" 줄이 항상 가리켜져야 Enter가 엉뚱한 팀을 고르지 않아요.
+            cmdk는 값을 직접 정하지 않은 모든 경우(입력 변경, 항목 마운트·언마운트)에 DOM 순서의 첫 항목을 가리켜요
+            (cmdk 소스의 selectFirstItem). value를 controlled로 넘겨도 cmdk가 자기 값을 바꾼 걸 우리가 무시하면
+            화면과 cmdk 값이 어긋나서, 새 팀 줄을 DOM 맨 앞에 두고 화면에서만 맨 아래로(order-last) 보내요.
+          */}
+          <CommandList className="max-h-[220px] [&>[cmdk-list-sizer]]:flex [&>[cmdk-list-sizer]]:flex-col">
+            {showNewTeam && (
+              <CommandItem
+                value={NEW_TEAM_VALUE}
+                onSelect={() => setOpen(false)}
+                className="sticky bottom-0 order-last h-11 rounded-none border-t border-white/10 bg-card px-4 text-base data-[selected=true]:bg-accent"
+              >
+                <span className="truncate">'{value}' 새 팀으로 예약</span>
+              </CommandItem>
+            )}
             {items.map((team) => (
               <CommandItem
                 key={team.id}
@@ -133,15 +136,6 @@ export default function TeamNameField({
                 <span className="truncate">{team.name}</span>
               </CommandItem>
             ))}
-            {showNewTeam && (
-              <CommandItem
-                value={NEW_TEAM_VALUE}
-                onSelect={() => setOpen(false)}
-                className="sticky bottom-0 h-11 rounded-none border-t border-white/10 bg-card px-4 text-base data-[selected=true]:bg-accent"
-              >
-                <span className="truncate">'{value}' 새 팀으로 예약</span>
-              </CommandItem>
-            )}
           </CommandList>
         </PopoverContent>
       </Popover>
