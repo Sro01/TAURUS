@@ -104,11 +104,15 @@ export default function AdminReservationConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+      {/* 제목·버튼은 고정, 가운데 내용만 스크롤 */}
+      <AlertDialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col">
         <AlertDialogHeader>
           <AlertDialogTitle>{newCount}칸을 관리자 예약으로 잡을까요?</AlertDialogTitle>
+        </AlertDialogHeader>
+
+        <div className="-mx-6 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-6">
           <AlertDialogDescription asChild>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 justify-self-start text-left">
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 self-start text-left">
               <dt>날짜</dt>
               <dd className="text-foreground">{summary.dates}</dd>
               <dt>시간</dt>
@@ -117,65 +121,65 @@ export default function AdminReservationConfirmDialog({
               <dd className="text-foreground">{summary.description}</dd>
             </dl>
           </AlertDialogDescription>
-        </AlertDialogHeader>
 
-        {previewError ? (
-          <Alert variant="destructive">
-            <CircleAlert />
-            <AlertDescription>{previewError}</AlertDescription>
-          </Alert>
-        ) : !preview ? (
-          <Alert>
-            <LoaderCircle className="animate-spin" />
-            <AlertDescription>겹치는 예약을 확인하는 중이에요</AlertDescription>
-          </Alert>
-        ) : skipped.length === 0 && overwritten.length === 0 ? (
-          <Alert>
-            <CircleCheck />
-            <AlertDescription>겹치는 예약이 없어요</AlertDescription>
-          </Alert>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {overwritten.length > 0 && (
-              <Alert variant="destructive">
-                <TriangleAlert />
-                <AlertTitle className="line-clamp-none">{overwritten.length}칸의 팀 예약이 취소돼요</AlertTitle>
-                <AlertDescription>
-                  <ConflictList
-                    rows={overwritten.map((slot) => ({
-                      key: slot.startTime,
-                      time: slotLabel(slot.startTime),
-                      detail: <span className="truncate text-foreground">{slot.teams.map(teamLabel).join(', ')}</span>,
-                    }))}
-                  />
-                </AlertDescription>
-              </Alert>
-            )}
+          {previewError ? (
+            <Alert variant="destructive">
+              <CircleAlert />
+              <AlertDescription>{previewError}</AlertDescription>
+            </Alert>
+          ) : !preview ? (
+            <Alert>
+              <LoaderCircle className="animate-spin" />
+              <AlertDescription>겹치는 예약을 확인하는 중이에요</AlertDescription>
+            </Alert>
+          ) : skipped.length === 0 && overwritten.length === 0 ? (
+            <Alert>
+              <CircleCheck />
+              <AlertDescription>겹치는 예약이 없어요</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {overwritten.length > 0 && (
+                <Alert variant="destructive">
+                  <TriangleAlert />
+                  <AlertTitle className="line-clamp-none">{overwritten.length}칸의 팀 예약이 취소돼요</AlertTitle>
+                  <AlertDescription>
+                    <ConflictList
+                      rows={overwritten.map((slot) => ({
+                        key: slot.startTime,
+                        time: slotLabel(slot.startTime),
+                        detail: <span className="truncate text-foreground">{slot.teams.map(teamLabel).join(', ')}</span>,
+                      }))}
+                    />
+                  </AlertDescription>
+                </Alert>
+              )}
 
-            {skipped.length > 0 && (
-              <Alert>
-                <TriangleAlert />
-                <AlertTitle className="line-clamp-none">{skipped.length}칸은 이미 관리자 예약이 있어 건너뛰어요</AlertTitle>
-                <AlertDescription>
-                  <ConflictList
-                    rows={skipped.map((slot) => ({
-                      key: slot.startTime,
-                      time: slotLabel(slot.startTime),
-                      detail: slot.description && <span className="truncate">{slot.description}</span>,
-                    }))}
-                  />
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        )}
+              {skipped.length > 0 && (
+                <Alert>
+                  <TriangleAlert />
+                  <AlertTitle className="line-clamp-none">{skipped.length}칸은 이미 관리자 예약이 있어 건너뛰어요</AlertTitle>
+                  <AlertDescription>
+                    <ConflictList
+                      rows={skipped.map((slot) => ({
+                        key: slot.startTime,
+                        time: slotLabel(slot.startTime),
+                        detail: slot.description && <span className="truncate">{slot.description}</span>,
+                      }))}
+                    />
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
 
-        {error && (
-          <Alert variant="destructive">
-            <CircleAlert />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+          {error && (
+            <Alert variant="destructive">
+              <CircleAlert />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </div>
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={submitting}>닫기</AlertDialogCancel>
