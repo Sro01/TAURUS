@@ -6,6 +6,7 @@ import ContentArea from './ContentArea';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState } from 'react';
 import { ROUTES } from '../../constants/routes';
+import { NAV_ITEMS } from '../../constants/navigation';
 
 interface ProtectedLayoutProps {
   allowedRoles: ('ADMIN' | 'TEAM')[];
@@ -36,13 +37,7 @@ export default function ProtectedLayout({ allowedRoles }: ProtectedLayoutProps) 
       <Sidebar 
         isOpen={isMenuOpen} 
         onClose={() => setIsMenuOpen(false)} 
-        items={[
-          { label: '바로 예약', path: ROUTES.INSTANT_RESERVATION },
-          { label: '미리 예약', path: ROUTES.PRE_RESERVATION },
-          { label: '합주 시간 조율', path: ROUTES.JAM_CREATE },
-          { label: '팀 관리', path: ROUTES.TEAMS_ME },
-          { label: '관리자', path: ROUTES.ADMIN },
-        ]}
+        items={NAV_ITEMS}
         onNavigate={(path) => {
             setIsMenuOpen(false);
             window.location.href = path; 

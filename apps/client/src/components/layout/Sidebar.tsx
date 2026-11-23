@@ -1,11 +1,7 @@
 
 import { Overlay } from '../common';
 import { useLocation } from 'react-router-dom';
-
-interface NavItem {
-  label: string;
-  path: string;
-}
+import type { NavItem } from '../../constants/navigation';
 
 interface SidebarProps {
   isOpen: boolean;
