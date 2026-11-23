@@ -16,11 +16,20 @@ WHERE "name" IN (
 
 -- 2. "nameKey"를 null 허용으로 추가하고 남은 팀 전부 채움
 --    normalizeName(src/common/utils/name.ts)과 같은 규칙: NFC → 숫자·영문·한글 완성형만 남김 → 소문자
---    (남긴 뒤 lower라 영문 A–Z만 바뀜 → DB 로케일과 무관)
+--    lower()는 정렬 규칙(collation)을 따라 바뀜(예: tr-TR에서 I → ı) → COLLATE "C"로 고정해 영문 A–Z만 a–z로 바꿈
 ALTER TABLE "teams" ADD COLUMN "nameKey" TEXT;
 
 UPDATE "teams"
-SET "nameKey" = lower(regexp_replace(normalize("name", NFC), '[^0-9A-Za-z가-힣]', '', 'g'));
+SET "nameKey" = lower((regexp_replace(normalize("name", NFC), '[^0-9A-Za-z가-힣]', '', 'g')) COLLATE "C");
+
+-- 2-1. 비교용 이름이 빈 팀(특수문자·이모지 등만 있는 이름)이 있으면 중단. 이 마이그레이션 전체(1번 삭제 포함)가 롤백됨
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM "teams" WHERE "nameKey" = '') THEN
+        RAISE EXCEPTION 'team_name_key: 비교용 이름이 빈 팀이 있습니다 (한글·영문·숫자가 없는 팀 이름). 해당 팀을 정리한 뒤 다시 배포하세요: %',
+            (SELECT string_agg("name", ', ') FROM "teams" WHERE "nameKey" = '');
+    END IF;
+END $$;
 
 -- 3. null 금지 + 겹침 제약
 ALTER TABLE "teams" ALTER COLUMN "nameKey" SET NOT NULL;

@@ -123,6 +123,14 @@ describe('Jam 모듈 (E2E)', () => {
       });
     });
 
+    it('J-12: 제목 null → 400', async () => {
+      const res = await http()
+        .patch(`/jam-rooms/${slug}`)
+        .set('X-Jam-Token', kimToken)
+        .send({ title: null });
+      expect(res.status).toBe(400);
+    });
+
     it('J-6: 출입증 없음 401, 다른 방 출입증 403', async () => {
       const noToken = await http()
         .patch(`/jam-rooms/${slug}`)

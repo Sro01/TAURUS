@@ -125,6 +125,18 @@ describe('TeamService', () => {
       expect(prisma.team.create).not.toHaveBeenCalled();
     });
 
+    it('비교용 이름이 빈 값이면 찾지 않고, autoRegister는 400', async () => {
+      await expect(teamService.findByName('???')).resolves.toBeNull();
+      await expect(
+        authService.verify({
+          name: '🎸',
+          password: '1234',
+          autoRegister: true,
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(prisma.team.findUnique).not.toHaveBeenCalled();
+    });
+
     it('비교용 이름이 빈 값이면 400', async () => {
       await expect(teamService.create('!!! ', '1234')).rejects.toBeInstanceOf(
         BadRequestException,

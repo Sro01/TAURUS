@@ -47,10 +47,11 @@ export class TeamService {
     }
 
     // 비교용 이름으로 팀 찾기 (대소문자·띄어쓰기·특수문자 무시)
+    // 비교용 이름이 빈 값이면(특수문자·이모지만) 찾지 않음 → autoRegister는 create의 금지 규칙으로 400
     async findByName(name: string): Promise<Team | null> {
-        return this.prisma.team.findUnique({
-            where: { nameKey: normalizeName(name) },
-        });
+        const nameKey = normalizeName(name);
+        if (nameKey === '') return null;
+        return this.prisma.team.findUnique({ where: { nameKey } });
     }
 
     // 팀 만들기 (등록·자동 등록 공용): 이름 검사 → 겹침 확인 → 해시 → 저장
