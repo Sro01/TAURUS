@@ -16,6 +16,11 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
+  // 앱을 닫아야 크론·DB 연결이 풀려 jest가 끝남
+  afterEach(async () => {
+    await app.close();
+  });
+
   it('/ (GET)', () => {
     return request(app.getHttpServer())
       .get('/')
