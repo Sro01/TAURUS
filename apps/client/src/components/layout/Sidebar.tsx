@@ -1,7 +1,9 @@
 
 import { Overlay } from '../common';
 import { useLocation } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
 import type { NavItem } from '../../constants/navigation';
+import { todayKst } from '../../utils/jam/slots';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -15,6 +17,8 @@ export default function Sidebar({ isOpen, onClose, items, onNavigate }: SidebarP
 
   if (!isOpen) return null;
 
+  const today = todayKst();
+
   return (
     <>
       <Overlay onClose={onClose} />
@@ -23,13 +27,14 @@ export default function Sidebar({ isOpen, onClose, items, onNavigate }: SidebarP
           <button
             key={item.path}
             onClick={() => onNavigate(item.path)}
-            className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+            className={`w-full flex items-center gap-2 text-left px-4 py-3 rounded-lg transition-colors ${
               location.pathname === item.path
                 ? 'bg-primary/20 text-primary font-semibold'
                 : 'hover:bg-white/5 text-text-sub'
             }`}
           >
             {item.label}
+            {item.newUntil && today < item.newUntil && <Badge>NEW</Badge>}
           </button>
         ))}
       </nav>
