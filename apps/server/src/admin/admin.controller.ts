@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagg
 import { AdminService } from './admin.service';
 import { AdminVerifyDto } from './dto/admin-verify.dto';
 import { CreateAdminReservationDto } from './dto/create-admin-reservation.dto';
+import { CreateAdminReservationsResultDto } from './dto/admin-reservation-result.dto';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../common/guards/admin.guard';
@@ -39,9 +40,10 @@ export class AdminController {
     @Post('reservations')
     @UseGuards(AuthGuard('jwt'), AdminGuard)
     @ApiBearerAuth('access-token')
-    @ApiOperation({ summary: '관리자 우선 예약 생성 (CONFIRMED_ADMIN)' })
-    async createAdminReservation(@Body() dto: CreateAdminReservationDto) {
-        return this.adminService.createAdminReservation(dto);
+    @ApiOperation({ summary: '관리자 우선 예약 생성 (여러 칸 한 번에, CONFIRMED_ADMIN). 이미 관리자 예약이 있는 칸은 건너뜀' })
+    @ApiResponse({ status: 201, type: CreateAdminReservationsResultDto })
+    async createAdminReservations(@Body() dto: CreateAdminReservationDto) {
+        return this.adminService.createAdminReservations(dto);
     }
 
     @Get('reservations/team/:teamId')

@@ -2,6 +2,8 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, cleanupTestData, TEST_PREFIX } from './setup-e2e';
 import { getAdminToken, createTestTeam, getFutureTimeSlot } from './helpers/test.helper';
+import { PrismaService } from '../src/prisma/prisma.service';
+import dayjs from '../src/common/utils/dayjs';
 
 describe('Admin 모듈 (E2E)', () => {
     let app: INestApplication;
@@ -76,21 +78,99 @@ describe('Admin 모듈 (E2E)', () => {
 
     // ─── 관리자 우선 예약 ─────────────────────
     describe('POST /admin/reservations', () => {
-        it('AD-6: 관리자 우선 예약 생성 → CONFIRMED_ADMIN', async () => {
-            const res = await request(app.getHttpServer())
+        const post = (body: object) =>
+            request(app.getHttpServer())
                 .post('/admin/reservations')
                 .set('Authorization', `Bearer ${adminToken}`)
-                .send({ startTime: getFutureTimeSlot(1, 20), description: '테스트 메모' });
+                .send(body);
+
+        it('AD-6: 여러 칸을 한 번에 → 모두 CONFIRMED_ADMIN', async () => {
+            const startTimes = [getFutureTimeSlot(1, 20), getFutureTimeSlot(1, 21)];
+            const res = await post({ startTimes, description: '테스트 메모' });
 
             if (res.status === 201) {
                 const data = res.body.data ?? res.body;
-                expect(data.status).toBe('CONFIRMED_ADMIN');
-                expect(data.teamName).toBe('관리자');
-                expect(data.description).toBe('테스트 메모');
+                expect(data.created).toHaveLength(2);
+                expect(data.skipped).toEqual([]);
+                for (const r of data.created) {
+                    expect(r.status).toBe('CONFIRMED_ADMIN');
+                    expect(r.teamName).toBe('관리자');
+                    expect(r.description).toBe('테스트 메모');
+                }
+                expect(data.created.map((r: { startTime: string }) => r.startTime)).toEqual(startTimes);
             } else {
-                // OPEN 주차가 없을 수 있음
-                expect([400, 404]).toContain(res.status);
+                // 해당 날짜 주차가 없을 수 있음
+                expect(res.status).toBe(404);
             }
+        });
+
+        it('AD-21: 이미 관리자 예약이 있는 칸은 건너뛰고 나머지만 잡음', async () => {
+            const taken = getFutureTimeSlot(2, 9);
+            const fresh = getFutureTimeSlot(2, 10);
+            const firstRes = await post({ startTimes: [taken], description: '먼저 잡은 칸' });
+            if (firstRes.status !== 201) {
+                expect(firstRes.status).toBe(404);
+                return;
+            }
+
+            const res = await post({ startTimes: [taken, fresh], description: '나중 칸' });
+            expect(res.status).toBe(201);
+            const data = res.body.data ?? res.body;
+            expect(data.created).toHaveLength(1);
+            expect(data.created[0].startTime).toBe(fresh);
+            expect(data.skipped).toEqual([{ startTime: taken, description: '먼저 잡은 칸' }]);
+        });
+
+        it('AD-17: 같은 시각을 여러 번 보내면 한 칸만 잡음', async () => {
+            const t = getFutureTimeSlot(2, 13);
+            const res = await post({ startTimes: [t, t] });
+            if (res.status === 201) {
+                const data = res.body.data ?? res.body;
+                expect(data.created).toHaveLength(1);
+            } else {
+                expect(res.status).toBe(404);
+            }
+        });
+
+        it('AD-18: 팀 예약이 있는 칸은 취소하고 관리자 예약으로 덮어씀', async () => {
+            const t = getFutureTimeSlot(1, 12);
+            const { token: teamToken } = await createTestTeam(app, 'admin_overwrite');
+            const teamRes = await request(app.getHttpServer())
+                .post('/reservations/instant')
+                .set('Authorization', `Bearer ${teamToken}`)
+                .send({ startTime: t });
+            if (teamRes.status !== 201) return; // 바로 예약 가능한 주차가 아님
+
+            const res = await post({ startTimes: [t], description: '덮어쓰기' });
+            expect(res.status).toBe(201);
+
+            const prisma = app.get(PrismaService);
+            const teamReservation = await prisma.reservation.findUnique({
+                where: { id: (teamRes.body.data ?? teamRes.body).id },
+            });
+            expect(teamReservation?.status).toBe('CANCELLED');
+        });
+
+        it('AD-19: 정시가 아니거나 09~22시 밖이면 400, 아무것도 잡지 않음', async () => {
+            const ok = getFutureTimeSlot(3, 15);
+            const early = getFutureTimeSlot(3, 8);
+            const halfPast = dayjs(getFutureTimeSlot(3, 16)).add(30, 'minute').format();
+
+            for (const bad of [early, halfPast]) {
+                const res = await post({ startTimes: [ok, bad] });
+                expect(res.status).toBe(400);
+            }
+
+            const prisma = app.get(PrismaService);
+            const count = await prisma.reservation.count({
+                where: { startTime: new Date(ok), status: 'CONFIRMED_ADMIN' },
+            });
+            expect(count).toBe(0);
+        });
+
+        it('AD-20: 빈 배열 → 400', async () => {
+            const res = await post({ startTimes: [] });
+            expect(res.status).toBe(400);
         });
     });
 
