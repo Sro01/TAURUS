@@ -56,7 +56,6 @@ describe('getTeamNameHint', () => {
       const h = getTeamNameHint(searchOf('fight', { exact: FIGHTMAN, matches: [FIGHTMAN, BROCCOLI] }), 'fight');
       expect(h.items).toEqual([]);
       expect(h.showNewTeam).toBe(false);
-      expect(h.registered).toBe(true);
     });
   });
 
@@ -65,7 +64,6 @@ describe('getTeamNameHint', () => {
       const h = getTeamNameHint(searchOf('브로', { matches: [BROCCOLI] }), '브로');
       expect(h.items).toEqual([BROCCOLI]);
       expect(h.showNewTeam).toBe(true);
-      expect(h.registered).toBe(false);
       expect(h.blocked).toBe(false);
       expect(h.submitName).toBe('브로');
     });
@@ -89,7 +87,6 @@ describe('getTeamNameHint', () => {
         isError: false,
         blocked: false,
         submitName: 'fightman',
-        registered: false,
         items: [],
         showNewTeam: false,
       });
@@ -107,7 +104,6 @@ describe('getTeamNameHint', () => {
       const h = getTeamNameHint(searchOf('fightman', { exact: FIGHTMAN, matches: [FIGHTMAN] }), 'fightmanX');
       expect(h.message).toBeNull();
       expect(h.submitName).toBe('fightmanX');
-      expect(h.registered).toBe(false);
       expect(h.items).toEqual([]);
     });
 

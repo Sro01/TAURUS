@@ -16,8 +16,6 @@ export interface TeamNameHint {
   blocked: boolean;
   /** 제출 때 보낼 이름 (`exact`가 있으면 `exact.name`, 아니면 입력값 그대로) */
   submitName: string;
-  /** 지금 입력에 대한 응답에 `exact`(이미 있는 팀)가 있는지 */
-  registered: boolean;
   /** 드롭다운에 보여 줄 비슷한 팀 (`exact`가 있으면 비어 있어요. 드롭다운은 `exact`가 없을 때만 열려요) */
   items: TeamSearchItem[];
   /** 드롭다운 맨 아래 "새 팀으로 예약" 줄을 보일지 */
@@ -42,7 +40,6 @@ export function getTeamNameHint(search: TeamNameSearch | null, input: string): T
     isError: false,
     blocked: false,
     submitName: input,
-    registered: false,
     items: [],
     showNewTeam: false,
   };
@@ -65,7 +62,6 @@ export function getTeamNameHint(search: TeamNameSearch | null, input: string): T
       ...none,
       message: exact.name === input ? TEAM_NAME_MESSAGES.registered : `${exact.name} 팀으로 예약돼요`,
       submitName: exact.name,
-      registered: true,
     };
   }
 
