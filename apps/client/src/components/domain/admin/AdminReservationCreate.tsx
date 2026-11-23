@@ -46,13 +46,13 @@ export default function AdminReservationCreate({ onCreated }: AdminReservationCr
 
         <CardContent>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
-            <FieldSet>
+            <FieldSet className="min-w-0">
               <FieldLegend variant="label">날짜</FieldLegend>
               <MultiDatePicker selectedDates={dates} onChange={form.setDates} />
               {dates.length > 0 && (
-                <ul aria-label="고른 날짜" className="flex flex-wrap gap-2">
+                <ul aria-label="고른 날짜" className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]">
                   {dates.map((date) => (
-                    <li key={date}>
+                    <li key={date} className="shrink-0">
                       <Badge variant="secondary" className="h-8 gap-1 pr-1 pl-3 text-sm">
                         {dateLabel(date)}
                         <button
