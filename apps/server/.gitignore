@@ -5,3 +5,6 @@ node_modules
 /generated/prisma
 
 /generated/prisma
+
+# e2e 테스트 결과 (실행할 때마다 바뀌는 자동 생성 파일)
+/test/reports/
