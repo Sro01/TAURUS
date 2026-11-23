@@ -11,10 +11,9 @@ import { CreatePreReservationDto } from './dto/create-pre-reservation.dto';
 import { ReservationResponseDto } from './dto/reservation-response.dto';
 import { ReservationStatus, ReservationType, WeekStatus, Prisma } from '@prisma/client';
 import dayjs from '../common/utils/dayjs';
+import { assertSlotStart } from '../common/utils/slot';
 import {
     KST,
-    SLOT_START_HOUR,
-    SLOT_END_HOUR,
     SLOT_DURATION_MIN,
     DEFAULT_MAX_SLOTS_PER_WEEK,
     DEFAULT_MAX_SLOTS_PER_DAY,
@@ -283,19 +282,8 @@ export class ReservationService {
             throw new BadRequestException('현재 시각 이후의 시간만 예약할 수 있습니다.');
         }
 
-        // KST로 변환 후 검증
-        const kstTime = startTime.tz(KST);
-
-        // 정시 체크 (분, 초가 0이어야 함)
-        if (kstTime.minute() !== 0 || kstTime.second() !== 0) {
-            throw new BadRequestException('예약은 매 시 정각에만 가능합니다.');
-        }
-
-        // 시간 범위 체크 (09~22 KST)
-        const hour = kstTime.hour();
-        if (hour < SLOT_START_HOUR || hour > SLOT_END_HOUR) {
-            throw new BadRequestException(`예약 가능 시간은 ${SLOT_START_HOUR}:00 ~ ${SLOT_END_HOUR}:00 (KST)입니다.`);
-        }
+        // 정시·09~22시 체크 (KST)
+        assertSlotStart(startTime.tz(KST));
     }
 
     // ──────────────────────────────────────
