@@ -70,7 +70,7 @@ export default function PreReservationPage() {
         onDateSelect={handleDateSelect}
         onTimeSlotClick={handleTimeSlotClick}
         banner={{
-          label: "Next Week",
+          label: "다음 주",
           weeks: weekData?.weekNumber || 0,
           startDate: weekData?.startDate || '',
           endDate: weekData?.endDate || '',

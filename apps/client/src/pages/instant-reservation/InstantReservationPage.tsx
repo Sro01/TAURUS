@@ -68,7 +68,7 @@ export default function InstantReservationPage() {
         onDateSelect={handleDateSelect}
         onTimeSlotClick={handleTimeSlotClick}
         banner={{
-          label: "This Week",
+          label: "이번 주",
           weeks: weekData?.weekNumber || 0,
           startDate: weekData?.startDate || '',
           endDate: weekData?.endDate || '',
