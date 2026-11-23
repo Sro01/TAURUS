@@ -1,5 +1,6 @@
 import { InputHTMLAttributes, forwardRef, ReactNode } from 'react';
 import { WarningCircle } from '@phosphor-icons/react';
+import { inputClassName } from './inputStyles';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -10,9 +11,6 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, icon, fullWidth = false, className = '', ...props }, ref) => {
-    const baseStyles = "bg-bg-main border border-white/10 rounded-xl px-4 py-3 text-white outline-none transition-all placeholder:text-text-sub/50 disabled:opacity-50 disabled:cursor-not-allowed";
-    const focusStyles = "focus:border-primary focus:ring-1 focus:ring-primary/50";
-    const errorStyles = error ? "border-status-danger/50 focus:border-status-danger focus:ring-status-danger/50" : focusStyles;
     const widthStyles = fullWidth ? "" : "w-full";
     
     return (
@@ -30,7 +28,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           <input
             ref={ref}
-            className={`${baseStyles} ${errorStyles} ${icon ? 'pl-10' : ''} ${widthStyles} ${className}`}
+            className={`${inputClassName(!!error)} ${icon ? 'pl-10' : ''} ${widthStyles} ${className}`}
             {...props}
           />
         </div>

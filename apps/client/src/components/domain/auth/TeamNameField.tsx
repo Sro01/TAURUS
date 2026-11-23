@@ -6,6 +6,7 @@ import { WarningCircle } from '@phosphor-icons/react';
 import { Command, CommandItem, CommandList } from '@/components/ui/command';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
+import { inputClassName } from '@/components/common/inputStyles';
 import { cn } from '@/lib/utils';
 import type { TeamNameHint } from '@/utils/teamNameHint';
 
@@ -86,12 +87,7 @@ export default function TeamNameField({
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               aria-invalid={isError || undefined}
-              className={cn(
-                'w-full rounded-xl border bg-bg-main py-3 pl-10 pr-4 text-white outline-none transition-all placeholder:text-text-sub/50 disabled:cursor-not-allowed disabled:opacity-50',
-                isError
-                  ? 'border-status-danger/50 focus:border-status-danger focus:ring-1 focus:ring-status-danger/50'
-                  : 'border-white/10 focus:border-primary focus:ring-1 focus:ring-primary/50',
-              )}
+              className={cn(inputClassName(isError), 'w-full pl-10')}
             />
           </div>
         </PopoverAnchor>
