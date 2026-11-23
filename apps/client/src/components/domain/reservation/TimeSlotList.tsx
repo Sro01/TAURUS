@@ -61,6 +61,7 @@ export default function TimeSlotList({ selectedDate, reservations, onReserve }: 
             description={confirmedRes?.description}
             pendingCount={pendingResList.length}
             onClick={handleSlotClick}
+            isFirst={i === 0}
             isLast={i === slots.length - 1}
           />
         );
