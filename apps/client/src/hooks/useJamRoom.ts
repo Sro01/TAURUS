@@ -329,7 +329,7 @@ export function useJamBooking(jam: JamRoomState, notify: (message: string) => vo
         teamPassword,
         showWaitlist: kind === 'pre',
         title: `${dateText} ${verb}`,
-        submitLabel: `${hourText} ${verb}하기`,
+        submitLabel: `${hourText} ${verb}`,
     };
 
     return { start, modalProps };
