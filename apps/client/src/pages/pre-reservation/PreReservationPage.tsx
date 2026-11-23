@@ -2,7 +2,8 @@ import dayjs from '../../utils/dayjs';
 import { useAuth } from '../../hooks';
 import { useReservationPage } from '../../hooks/useReservationPage';
 import { useReservationAction } from '../../hooks/useReservationAction';
-import { InlineAlert, PageContainer, PageTitle } from '../../components/common';
+import { PageContainer, PageTitle } from '../../components/common';
+import NoticeHelp from '../../components/domain/reservation/NoticeHelp';
 import ReservationPageLayout from '../../components/domain/reservation/ReservationPageLayout';
 
 export default function PreReservationPage() {
@@ -47,10 +48,9 @@ export default function PreReservationPage() {
     <PageContainer>
       <PageTitle
         title="미리 예약"
-      />
-      <InlineAlert
-          title="필독 사항"
-          children={
+        divider={false}
+        action={
+          <NoticeHelp title="필독 사항">
             <div className="flex-col space-y-1 text-white/85">
               <p>• 미리 예약은 <span className="font-semibold text-white">다음 주</span> 합주 예약을 미리 <span className="font-semibold text-white">예약 대기</span>를 걸어둘 수 있습니다.</p>
               <p>• <span className="font-semibold text-white">예약 성공: 예약 대기 1팀</span></p>
@@ -58,8 +58,10 @@ export default function PreReservationPage() {
               <p>• <span className="font-semibold text-white">매주 일요일 00시</span> 주차 전환 시에 <span className="font-semibold text-white">예약 성공/실패 여부가 확정</span>됩니다.</p>
               <p>• <span className="font-semibold text-white">(주의!)</span> 고의로 예약 실패를 유도하는 행위는 제재 대상이 될 수 있습니다.</p>
             </div>
-          }
-        />
+          </NoticeHelp>
+        }
+      />
+
       <ReservationPageLayout
         weekData={weekData}
         loading={loading}
