@@ -38,3 +38,26 @@ export interface CreateAdminReservationsResult {
     created: Reservation[];
     skipped: SkippedAdminSlot[];
 }
+
+/** 덮어쓰면 취소될 팀 예약 */
+export interface OverwrittenTeam {
+    teamName: string | null;
+    /** 확정 / 미리 예약 대기 */
+    status: 'CONFIRMED' | 'PENDING';
+}
+
+/** 팀 예약이 있어 관리자 예약으로 바뀔 칸 */
+export interface OverwrittenSlot {
+    startTime: string;
+    teams: OverwrittenTeam[];
+}
+
+/**
+ * 관리자 우선 예약 미리 보기 (예약 전 확인)
+ */
+export interface AdminReservationPreview {
+    /** 새로 잡힐 칸 수 (건너뛸 칸 제외) */
+    newSlotCount: number;
+    skipped: SkippedAdminSlot[];
+    overwritten: OverwrittenSlot[];
+}

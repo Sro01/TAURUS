@@ -1,17 +1,6 @@
-import { CircleAlert, TriangleAlert, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import dayjs from '@/utils/dayjs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field';
@@ -20,6 +9,7 @@ import { useAdminReservationCreate } from '@/hooks/useAdminReservationCreate';
 import { rangeLabel } from '@/utils/adminSlots';
 import { MultiDatePicker } from '../../common';
 import AdminTimeRanges from './AdminTimeRanges';
+import AdminReservationConfirmDialog from './AdminReservationConfirmDialog';
 import AdminReservationResultDialog from './AdminReservationResultDialog';
 
 const dateLabel = (date: string) => dayjs(date).format('M/D (ddd)');
@@ -29,7 +19,7 @@ interface AdminReservationCreateProps {
   onCreated?: () => void;
 }
 
-/** 관리자 권한으로 예약하기: 날짜 여러 개 × 시간 줄 여러 개 → 확인 → 결과 */
+/** 관리자 권한으로 예약하기: 날짜 여러 개 × 시간 줄 여러 개 → 확인(겹치는 예약 미리 보기) → 결과 */
 export default function AdminReservationCreate({ onCreated }: AdminReservationCreateProps) {
   const form = useAdminReservationCreate(onCreated);
   const { dates, ranges, hours, slotCount, blocker } = form;
@@ -96,49 +86,22 @@ export default function AdminReservationCreate({ onCreated }: AdminReservationCr
         </CardFooter>
       </Card>
 
-      <AlertDialog open={form.confirmOpen} onOpenChange={(open) => !form.submitting && form.setConfirmOpen(open)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{slotCount}칸을 관리자 예약으로 잡을까요?</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-left">
-                <dt>날짜</dt>
-                <dd className="text-foreground">{dates.map(dateLabel).join(' · ')}</dd>
-                <dt>시간</dt>
-                <dd className="text-foreground">{ranges.map(rangeLabel).join(', ')} ({hours.length}시간)</dd>
-                <dt>사유</dt>
-                <dd className="text-foreground">{form.description.trim()}</dd>
-              </dl>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <Alert>
-            <TriangleAlert />
-            <AlertDescription>이 시간에 잡힌 팀 예약은 취소돼요</AlertDescription>
-          </Alert>
-
-          {form.error && (
-            <Alert variant="destructive">
-              <CircleAlert />
-              <AlertDescription>{form.error}</AlertDescription>
-            </Alert>
-          )}
-
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={form.submitting}>닫기</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={form.submitting}
-              onClick={(e) => {
-                // 결과가 올 때까지 창을 열어 둔다
-                e.preventDefault();
-                form.submit();
-              }}
-            >
-              {form.submitting ? '예약하는 중…' : `${slotCount}칸 예약하기`}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AdminReservationConfirmDialog
+        open={form.confirmOpen}
+        onClose={form.closeConfirm}
+        slotCount={slotCount}
+        summary={{
+          dates: dates.map(dateLabel).join(' · '),
+          times: `${ranges.map(rangeLabel).join(', ')} (${hours.length}시간)`,
+          description: form.description.trim(),
+        }}
+        preview={form.preview}
+        previewError={form.previewError}
+        canSubmit={form.canSubmit}
+        submitting={form.submitting}
+        error={form.error}
+        onSubmit={form.submit}
+      />
 
       <AdminReservationResultDialog result={form.result} onClose={form.closeResult} />
     </>

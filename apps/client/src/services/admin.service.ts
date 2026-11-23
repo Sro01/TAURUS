@@ -4,6 +4,7 @@ import {
     UpdateSettingsDto,
     CreateAdminReservationDto,
     CreateAdminReservationsResult,
+    AdminReservationPreview,
 } from '../types/admin';
 import { Reservation } from '../types/reservation';
 
@@ -31,6 +32,14 @@ export const adminService = {
      */
     updateSettings: async (settings: UpdateSettingsDto): Promise<AdminSettings> => {
         return await axiosClient.patch('/admin/settings', settings);
+    },
+
+    /**
+     * 관리자 예약 미리 보기 (바꾸지 않음): 건너뛸 칸, 팀 예약이 취소될 칸
+     * POST /admin/reservations/preview
+     */
+    previewReservations: async (data: CreateAdminReservationDto): Promise<AdminReservationPreview> => {
+        return await axiosClient.post('/admin/reservations/preview', data);
     },
 
     /**

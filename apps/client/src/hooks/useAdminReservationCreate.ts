@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { adminService } from '../services';
 import { getJamErrorMessage } from '../services/jamApi';
-import type { CreateAdminReservationsResult } from '../types/admin';
+import type { AdminReservationPreview, CreateAdminReservationsResult } from '../types/admin';
 import { buildAdminStartTimes, hoursOf, nextRange, type TimeRange } from '../utils/adminSlots';
 
 /**
- * 관리자 예약 만들기: 날짜 여러 개 × 시간 줄 여러 개 → 한 번에 예약.
- * 이미 관리자 예약이 있는 칸은 서버가 건너뛰고 result.skipped로 알려 준다.
+ * 관리자 예약 만들기: 날짜 여러 개 × 시간 줄 여러 개 → 미리 보기 확인 → 한 번에 예약.
+ * 확인 창을 열면 서버에 미리 물어 이미 관리자 예약이 있는 칸(건너뜀)과
+ * 팀 예약이 있는 칸(취소됨)을 보여 준다.
  */
 export function useAdminReservationCreate(onCreated?: () => void) {
   const [dates, setDates] = useState<string[]>([]);
@@ -14,9 +15,13 @@ export function useAdminReservationCreate(onCreated?: () => void) {
   const [description, setDescription] = useState('');
 
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [preview, setPreview] = useState<AdminReservationPreview | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CreateAdminReservationsResult | null>(null);
+  /** 마지막으로 연 확인 창 번호 (닫았다 다시 열면 늦게 온 미리 보기를 버린다) */
+  const previewRequest = useRef(0);
 
   const hours = hoursOf(ranges);
   const slotCount = dates.length * hours.length;
@@ -29,19 +34,40 @@ export function useAdminReservationCreate(onCreated?: () => void) {
     : !trimmedDescription ? '점유 사유를 적어 주세요'
     : null;
 
-  const openConfirm = () => {
+  const startTimes = () => buildAdminStartTimes(dates, hours);
+
+  const openConfirm = async () => {
     if (blocker) return;
+    const request = ++previewRequest.current;
     setError(null);
+    setPreview(null);
+    setPreviewError(null);
     setConfirmOpen(true);
+    try {
+      const res = await adminService.previewReservations({ startTimes: startTimes() });
+      if (request === previewRequest.current) setPreview(res);
+    } catch (e) {
+      if (request === previewRequest.current) {
+        setPreviewError(getJamErrorMessage(e, '겹치는 예약을 확인하지 못했어요. 닫고 다시 눌러 주세요'));
+      }
+    }
   };
 
+  const closeConfirm = () => {
+    if (submitting) return;
+    previewRequest.current++;
+    setConfirmOpen(false);
+  };
+
+  const canSubmit = !blocker && !submitting && preview !== null && preview.newSlotCount > 0;
+
   const submit = async () => {
-    if (blocker || submitting) return;
+    if (!canSubmit) return;
     setSubmitting(true);
     setError(null);
     try {
       const res = await adminService.createReservations({
-        startTimes: buildAdminStartTimes(dates, hours),
+        startTimes: startTimes(),
         description: trimmedDescription,
       });
       setConfirmOpen(false);
@@ -67,8 +93,11 @@ export function useAdminReservationCreate(onCreated?: () => void) {
     slotCount,
     blocker,
     confirmOpen,
-    setConfirmOpen,
     openConfirm,
+    closeConfirm,
+    preview,
+    previewError,
+    canSubmit,
     submit,
     submitting,
     error,
