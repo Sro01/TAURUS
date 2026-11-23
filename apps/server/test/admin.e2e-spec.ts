@@ -168,6 +168,52 @@ describe('Admin 모듈 (E2E)', () => {
             expect(count).toBe(0);
         });
 
+        it('AD-22: 미리 보기 → 건너뛸 칸·취소될 팀 예약을 알려 주고 아무것도 바꾸지 않음', async () => {
+            const adminSlot = getFutureTimeSlot(2, 11);
+            const freeSlot = getFutureTimeSlot(2, 12);
+            const teamSlot = getFutureTimeSlot(1, 14);
+
+            const adminRes = await post({ startTimes: [adminSlot], description: '미리 잡은 칸' });
+            if (adminRes.status !== 201) {
+                expect(adminRes.status).toBe(404);
+                return;
+            }
+
+            const { name: teamName, token: teamToken } = await createTestTeam(app, 'admin_preview');
+            const teamRes = await request(app.getHttpServer())
+                .post('/reservations/instant')
+                .set('Authorization', `Bearer ${teamToken}`)
+                .send({ startTime: teamSlot });
+            const hasTeam = teamRes.status === 201; // 바로 예약 가능한 주차가 아닐 수 있음
+
+            const startTimes = hasTeam ? [adminSlot, freeSlot, teamSlot] : [adminSlot, freeSlot];
+            const res = await request(app.getHttpServer())
+                .post('/admin/reservations/preview')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ startTimes });
+            expect(res.status).toBe(200);
+            const data = res.body.data ?? res.body;
+
+            expect(data.newSlotCount).toBe(startTimes.length - 1);
+            expect(data.skipped).toEqual([{ startTime: adminSlot, description: '미리 잡은 칸' }]);
+            if (hasTeam) {
+                expect(data.overwritten).toEqual([
+                    { startTime: teamSlot, teams: [{ teamName, status: 'CONFIRMED' }] },
+                ]);
+            } else {
+                expect(data.overwritten).toEqual([]);
+            }
+
+            // 아무것도 바뀌지 않음
+            const prisma = app.get(PrismaService);
+            const freeCount = await prisma.reservation.count({ where: { startTime: new Date(freeSlot) } });
+            expect(freeCount).toBe(0);
+            if (hasTeam) {
+                const team = await prisma.reservation.findUnique({ where: { id: (teamRes.body.data ?? teamRes.body).id } });
+                expect(team?.status).toBe('CONFIRMED');
+            }
+        });
+
         it('AD-20: 빈 배열 → 400', async () => {
             const res = await post({ startTimes: [] });
             expect(res.status).toBe(400);

@@ -1,9 +1,9 @@
-import { Controller, Post, Body, Get, Patch, Delete, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, Delete, Param, UseGuards, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { AdminVerifyDto } from './dto/admin-verify.dto';
 import { CreateAdminReservationDto } from './dto/create-admin-reservation.dto';
-import { CreateAdminReservationsResultDto } from './dto/admin-reservation-result.dto';
+import { AdminReservationPreviewDto, CreateAdminReservationsResultDto } from './dto/admin-reservation-result.dto';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../common/guards/admin.guard';
@@ -35,6 +35,16 @@ export class AdminController {
     @ApiOperation({ summary: '시스템 설정 변경 (MaxSlotsPerWeek)' })
     async updateSettings(@Body() dto: UpdateSettingsDto) {
         return this.adminService.updateSettings(dto);
+    }
+
+    @Post('reservations/preview')
+    @HttpCode(200)
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: '관리자 우선 예약 미리 보기 (바꾸지 않음). 건너뛸 칸과 팀 예약이 취소될 칸' })
+    @ApiResponse({ status: 200, type: AdminReservationPreviewDto })
+    async previewAdminReservations(@Body() dto: CreateAdminReservationDto) {
+        return this.adminService.previewAdminReservations(dto);
     }
 
     @Post('reservations')
