@@ -17,7 +17,7 @@ export default function AdminReservations() {
   const { allWeeks, loading: weekLoading,refreshAllWeeks } = useWeek();
   const { reservations, loading: resLoading, getReservations } = useReservation();
   
-  const [selectedWeekNumber, setSelectedWeekNumber] = useState<number>(0);
+  const [selectedWeekId, setSelectedWeekId] = useState<number>(0);
   const [selectedResIds, setSelectedResIds] = useState<string[]>([]);
   
   // Creation State
@@ -49,7 +49,7 @@ export default function AdminReservations() {
   const handleCancelReservation = async (id: string) => {
     try {
       await adminService.cancelReservation(id);
-      if (selectedWeekNumber > 0) getReservations(selectedWeekNumber.toString());
+      if (selectedWeekId > 0) getReservations(selectedWeekId.toString());
     } catch (error: any) {
       console.error(error);
       const statusCode = error.response?.status || 500;
@@ -73,7 +73,7 @@ export default function AdminReservations() {
         });
       }
       
-      if (selectedWeekNumber > 0) getReservations(selectedWeekNumber.toString());
+      if (selectedWeekId > 0) getReservations(selectedWeekId.toString());
       setSelectedCreateDates([]);
       setAdminResDesc('');
       alert('관리자 예약이 생성되었습니다.');
@@ -90,7 +90,7 @@ export default function AdminReservations() {
   }, [refreshAllWeeks]);
 
   useEffect(() => {
-    if (!weekLoading && allWeeks && allWeeks.length > 0 && selectedWeekNumber === 0) {
+    if (!weekLoading && allWeeks && allWeeks.length > 0 && selectedWeekId === 0) {
        const today = dayjs();
        const current = allWeeks.find(w => 
          (today.isSame(w.startDate, 'day') || today.isAfter(w.startDate)) && 
@@ -98,21 +98,21 @@ export default function AdminReservations() {
        );
 
        if (current) {
-         setSelectedWeekNumber(current.weekNumber);
+         setSelectedWeekId(current.id);
        } else {
          // Fallback to latest week if today is not within any range
          const latest = [...allWeeks].sort((a, b) => b.weekNumber - a.weekNumber)[0];
-         setSelectedWeekNumber(latest.weekNumber);
+         setSelectedWeekId(latest.id);
        }
     }
-  }, [allWeeks, weekLoading, selectedWeekNumber]);
+  }, [allWeeks, weekLoading, selectedWeekId]);
 
   useEffect(() => {
-    if (selectedWeekNumber > 0) {
-      getReservations(selectedWeekNumber.toString());
+    if (selectedWeekId > 0) {
+      getReservations(selectedWeekId.toString());
       setSelectedResIds([]);
     }
-  }, [selectedWeekNumber, getReservations]);
+  }, [selectedWeekId, getReservations]);
 
   return (
     <div className="space-y-10">
@@ -171,8 +171,8 @@ export default function AdminReservations() {
           <div className="w-full sm:w-64 sm:ml-auto">
               <Dropdown 
                 options={weekOptions}
-                value={selectedWeekNumber}
-                onChange={(val) => setSelectedWeekNumber(Number(val))}
+                value={selectedWeekId}
+                onChange={(val) => setSelectedWeekId(Number(val))}
                 fullWidth
               />
           </div>
