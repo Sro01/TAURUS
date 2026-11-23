@@ -15,7 +15,7 @@ export default function JamRoomWeekTabs({ labels, value, onChange }: JamRoomWeek
           <TabsTrigger
             key={index}
             value={String(index)}
-            className="h-9 rounded-lg text-sm font-bold data-[state=active]:border-transparent data-[state=active]:bg-[#3f3f46]"
+            className="h-10 rounded-[9px] border-transparent px-1 text-sm font-bold text-[#8b8b93] data-[state=active]:border-transparent data-[state=active]:bg-[#3f3f46] data-[state=active]:text-[#f4f4f5] data-[state=active]:shadow-none"
           >
             {label}
           </TabsTrigger>

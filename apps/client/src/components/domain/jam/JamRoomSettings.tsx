@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -93,10 +93,9 @@ export default function JamRoomSettings({ open, onOpenChange, room, onSave, onLe
   return (
     <>
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="mx-auto max-w-md gap-5 rounded-t-[22px] border-0 bg-card px-5 pb-6 pt-3">
+        <DrawerContent aria-describedby={undefined} className="mx-auto max-w-md gap-5 rounded-t-[22px] border-0 bg-card px-5 pb-6 pt-3">
           <DrawerHeader className="gap-1.5 p-0 text-left">
             <DrawerTitle className="text-lg font-extrabold">방 설정</DrawerTitle>
-            <DrawerDescription className="sr-only">방 제목과 인원을 바꾸거나 방에서 빠질 수 있어요</DrawerDescription>
           </DrawerHeader>
 
           <div className="flex flex-col gap-2">

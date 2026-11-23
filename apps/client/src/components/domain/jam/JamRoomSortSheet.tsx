@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { cn } from '@/lib/utils';
 import type { SortKey } from '@/types/jam';
 import { SORT_OPTIONS } from './JamRoomFormat';
@@ -17,10 +17,9 @@ interface JamRoomSortSheetProps {
 export default function JamRoomSortSheet({ open, onOpenChange, value, onChange }: JamRoomSortSheetProps) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="mx-auto max-w-md gap-1 rounded-t-[22px] border-0 bg-card px-3 pb-6 pt-3">
+      <DrawerContent aria-describedby={undefined} className="mx-auto max-w-md gap-1 rounded-t-[22px] border-0 bg-card px-3 pb-6 pt-3">
         <DrawerHeader className="p-0 px-2 pb-2 text-left">
           <DrawerTitle className="text-lg font-extrabold">정렬</DrawerTitle>
-          <DrawerDescription className="sr-only">우선순위 카드를 보여 줄 순서를 골라요</DrawerDescription>
         </DrawerHeader>
         {SORT_OPTIONS.map((option) => {
           const on = option.key === value;

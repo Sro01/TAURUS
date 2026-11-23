@@ -12,20 +12,21 @@ import {
 interface JamShareSheetProps {
   open: boolean;
   url: string;
-  /** 시트를 닫고 방으로 간다 (나중에 할게요, 바깥 누르기, 방으로 가기) */
+  /** 시트를 닫는다 (나중에 할게요, 바깥 누르기) */
   onClose: () => void;
+  /** 링크를 복사했을 때. 시트를 닫고 토스트를 띄우는 건 부른 쪽이 한다 */
+  onCopied: () => void;
 }
 
-/** 방을 만든 뒤 링크를 보여 주는 바닥 시트 (시안 "링크 공유") */
-export default function JamShareSheet({ open, url, onClose }: JamShareSheetProps) {
-  const [copied, setCopied] = useState(false);
+/** 링크를 보여 주는 바닥 시트 (시안 "링크 공유"). 방을 만든 직후와 공유 버튼에서 열린다 */
+export default function JamShareSheet({ open, url, onClose, onCopied }: JamShareSheetProps) {
   const [copyFailed, setCopyFailed] = useState(false);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(url);
-      setCopied(true);
       setCopyFailed(false);
+      onCopied();
     } catch {
       setCopyFailed(true);
     }
@@ -55,12 +56,11 @@ export default function JamShareSheet({ open, url, onClose }: JamShareSheetProps
           </Button>
         </div>
 
-        <p
-          role="status"
-          className={`-my-2 min-h-5 text-[13px] ${copyFailed ? 'text-red-400' : 'text-foreground'}`}
-        >
-          {copyFailed ? '복사하지 못했어요. 링크를 길게 눌러 복사해 주세요' : copied ? '링크를 복사했어요' : ''}
-        </p>
+        {copyFailed && (
+          <p role="alert" className="-my-2 text-[13px] text-red-400">
+            복사하지 못했어요. 링크를 길게 눌러 복사해 주세요
+          </p>
+        )}
 
         <div className="flex flex-col gap-1">
           <Button type="button" className="h-13 rounded-xl text-base font-bold" onClick={handleCopy}>
@@ -72,7 +72,7 @@ export default function JamShareSheet({ open, url, onClose }: JamShareSheetProps
             className="h-11 text-sm text-muted-foreground"
             onClick={onClose}
           >
-            {copied ? '방으로 가기' : '나중에 할게요'}
+            나중에 할게요
           </Button>
         </div>
       </DrawerContent>

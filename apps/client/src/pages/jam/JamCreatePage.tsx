@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
-import JamShareSheet from '@/components/domain/jam/JamShareSheet';
 import { jamRoomPath } from '@/constants/routes';
 import { jamService } from '@/services/jam.service';
 import { getJamErrorMessage } from '@/services/jamApi';
@@ -31,7 +30,6 @@ export default function JamCreatePage() {
   const [weeks, setWeeks] = useState<MainWeeksResponse | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createdSlug, setCreatedSlug] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -64,16 +62,13 @@ export default function JamCreatePage() {
         headcount: unknownCount ? null : headcount,
         range,
       });
-      setCreatedSlug(slug);
+      // 방 화면으로 가서 그 위에 링크 공유 시트를 연다 (JamRoomPage가 state를 읽고 비운다)
+      navigate(jamRoomPath(slug), { state: { justCreated: true } });
     } catch (err) {
       setError(getJamErrorMessage(err, '방을 만들지 못했어요. 다시 눌러 주세요'));
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const goToRoom = () => {
-    if (createdSlug) navigate(jamRoomPath(createdSlug));
   };
 
   return (
@@ -176,12 +171,6 @@ export default function JamCreatePage() {
       <Button type="submit" disabled={!canSubmit} className="h-13 rounded-xl text-base font-bold">
         만들기
       </Button>
-
-      <JamShareSheet
-        open={createdSlug !== null}
-        url={createdSlug ? `${window.location.origin}${jamRoomPath(createdSlug)}` : ''}
-        onClose={goToRoom}
-      />
     </form>
   );
 }

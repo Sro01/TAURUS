@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, Settings, Share2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,7 +37,12 @@ export default function JamRoomPage() {
   const [weekChoice, setWeekChoice] = useState<number | null>(null);
   const [focusId, setFocusId] = useState<string | null>(null);
   const [selectedCell, setSelectedCell] = useState<SlotRef | null>(null);
-  const [shareOpen, setShareOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // 방을 막 만들고 왔으면(라우터 state) 링크 공유 시트를 한 번 연다
+  const [shareOpen, setShareOpen] = useState(
+    () => (location.state as { justCreated?: boolean } | null)?.justCreated === true,
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -49,6 +54,13 @@ export default function JamRoomPage() {
     toastTimer.current = window.setTimeout(() => setToast(null), TOAST_MS);
   }, []);
   useEffect(() => () => window.clearTimeout(toastTimer.current), []);
+
+  // 새로고침·뒤로 가기로 시트가 다시 뜨지 않게 state를 비운다
+  useEffect(() => {
+    if ((location.state as { justCreated?: boolean } | null)?.justCreated) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   const booking = useJamBooking(jam, notify);
 
@@ -265,6 +277,10 @@ export default function JamRoomPage() {
             open={shareOpen}
             url={`${window.location.origin}${jamRoomPath(room.slug)}`}
             onClose={() => setShareOpen(false)}
+            onCopied={() => {
+              setShareOpen(false);
+              notify('링크를 복사했어요');
+            }}
           />
           {me && !room.ended && (
             <JamRoomSettings
