@@ -48,6 +48,10 @@ export default function HomePage() {
         </div>
       </div>
 
+      <footer className="home-copyright">
+        &copy; 2026 이은재. All rights reserved.
+      </footer>
+
       <audio
         ref={audioRef}
         src="/audio/TAURUS-TAURUS.mp3"
