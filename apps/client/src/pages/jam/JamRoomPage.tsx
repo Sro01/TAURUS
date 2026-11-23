@@ -138,7 +138,7 @@ export default function JamRoomPage() {
     await jam.leave();
     setStep('room');
     setFocusId(null);
-    notify('방에서 빠졌어요');
+    notify('방에서 나갔어요');
   };
 
   const toggleCell = (ref: SlotRef) =>

@@ -84,7 +84,7 @@ export default function JamRoomSettings({ open, onOpenChange, room, onSave, onLe
       await onLeave();
       setConfirmLeave(false);
     } catch (e) {
-      setLeaveError(getJamErrorMessage(e, '빠지지 못했어요. 다시 눌러 주세요'));
+      setLeaveError(getJamErrorMessage(e, '나가지 못했어요. 다시 눌러 주세요'));
     } finally {
       setSaving(false);
     }
@@ -182,7 +182,7 @@ export default function JamRoomSettings({ open, onOpenChange, room, onSave, onLe
                 setConfirmLeave(true);
               }}
             >
-              방에서 빠지기
+              방 나가기
             </Button>
           </div>
         </DrawerContent>
@@ -191,8 +191,8 @@ export default function JamRoomSettings({ open, onOpenChange, room, onSave, onLe
       <Dialog open={confirmLeave} onOpenChange={setConfirmLeave}>
         <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-sm" showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>방에서 빠질까요?</DialogTitle>
-            <DialogDescription>빠지면 내 시간이 지워져요.</DialogDescription>
+            <DialogTitle>방에서 나갈까요?</DialogTitle>
+            <DialogDescription>나가면 내 시간이 지워져요.</DialogDescription>
           </DialogHeader>
           {leaveError && (
             <p role="alert" className="text-[13px] text-[#f87171]">
@@ -204,7 +204,7 @@ export default function JamRoomSettings({ open, onOpenChange, room, onSave, onLe
               취소
             </Button>
             <Button type="button" variant="destructive" disabled={saving} onClick={handleLeave}>
-              빠지기
+              나가기
             </Button>
           </DialogFooter>
         </DialogContent>

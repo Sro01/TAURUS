@@ -285,7 +285,7 @@ export class JamService {
     await this.prisma.jamParticipant.delete({
       where: { id: jam.participantId },
     });
-    return { message: '방에서 빠졌어요' };
+    return { message: '방에서 나갔어요' };
   }
 
   // ─── 지난 방 지우기 ─────────────────────────
