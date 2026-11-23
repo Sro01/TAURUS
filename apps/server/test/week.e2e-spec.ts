@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createTestApp, cleanupTestData } from './setup-e2e';
+import { createTestApp, cleanupTestData, TEST_PREFIX } from './setup-e2e';
 import { getTeamToken } from './helpers/test.helper';
 
 describe('Week 모듈 (E2E)', () => {
@@ -37,6 +37,14 @@ describe('Week 모듈 (E2E)', () => {
         it('W-4: 인증 없이 주차 전환 시 401', async () => {
             const res = await request(app.getHttpServer()).post('/weeks/rotation');
             expect(res.status).toBe(401);
+        });
+
+        it('W-6: 팀 출입증으로 주차 전환 시 403', async () => {
+            const token = await getTeamToken(app, `${TEST_PREFIX}week_team`, '1234', true);
+            const res = await request(app.getHttpServer())
+                .post('/weeks/rotation')
+                .set('Authorization', `Bearer ${token}`);
+            expect(res.status).toBe(403);
         });
 
         // W-3, W-5는 실제 주차 상태를 변경하므로 별도 제어 필요

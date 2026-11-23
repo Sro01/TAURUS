@@ -5,7 +5,7 @@ import { AdminVerifyDto } from './dto/admin-verify.dto';
 import { CreateAdminReservationDto } from './dto/create-admin-reservation.dto';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AdminGuard } from './guards/admin.guard';
+import { AdminGuard } from '../common/guards/admin.guard';
 
 @ApiTags('Admin')
 @Controller('admin')

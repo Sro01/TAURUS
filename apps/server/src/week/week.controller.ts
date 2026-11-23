@@ -2,6 +2,7 @@ import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { WeekService } from './week.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { AdminGuard } from '../common/guards/admin.guard';
 
 @ApiTags('Week')
 @Controller('weeks')
@@ -23,11 +24,12 @@ export class WeekController {
     }
 
     @Post('rotation')
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
     @ApiBearerAuth('access-token')
-    @ApiOperation({ summary: '주차 강제 전환 (테스트용, 인증 필요)' })
+    @ApiOperation({ summary: '주차 강제 전환 (테스트용, 관리자 전용)' })
     @ApiResponse({ status: 201, description: '전환 성공' })
     @ApiResponse({ status: 401, description: '인증 필요' })
+    @ApiResponse({ status: 403, description: '관리자 권한 필요' })
     async rotation() {
         return this.weekService.rotation();
     }
