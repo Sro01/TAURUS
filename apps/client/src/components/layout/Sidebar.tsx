@@ -34,7 +34,7 @@ export default function Sidebar({ isOpen, onClose, items, onNavigate }: SidebarP
             }`}
           >
             {item.label}
-            {item.newUntil && today < item.newUntil && <Badge>NEW</Badge>}
+            {item.newUntil && today < item.newUntil && <Badge className="px-1.5 py-0 text-[10px] leading-4">NEW</Badge>}
           </button>
         ))}
       </nav>
