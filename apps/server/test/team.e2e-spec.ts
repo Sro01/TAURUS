@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, cleanupTestData, TEST_PREFIX } from './setup-e2e';
 import { getTeamToken, createTestTeam } from './helpers/test.helper';
+import { TeamSearchResult } from '../src/team/dto/search-team.dto';
 
 describe('Team 모듈 (E2E)', () => {
     let app: INestApplication;
@@ -49,6 +50,32 @@ describe('Team 모듈 (E2E)', () => {
             expect(data.length).toBe(0);
         });
     });
+
+  // ─── 팀 이름 검색 ─────────────────────────
+  describe('GET /teams/search', () => {
+    const search = async (q: string) => {
+      const res = await request(app.getHttpServer())
+        .get('/teams/search')
+        .query({ q });
+      const body = res.body as { data: TeamSearchResult };
+      return { status: res.status, data: body.data };
+    };
+
+    it('T-18: 표기만 다른 입력 → exact, 더 긴 입력 → matches (출입증 없이)', async () => {
+      const same = await search(`${TEST_PREFIX}TEAM-MAIN`);
+      expect(same.status).toBe(200);
+      expect(same.data.problem).toBeNull();
+      expect(same.data.exact).toMatchObject({ name: teamName });
+      expect(same.data.matches[0]).toMatchObject({ name: teamName });
+
+      const longer = await search(`${TEST_PREFIX}team main 2`);
+      expect(longer.status).toBe(200);
+      expect(longer.data.exact).toBeNull();
+      expect(longer.data.matches).toContainEqual(
+        expect.objectContaining({ name: teamName }),
+      );
+    });
+  });
 
     // ─── 내 정보 ──────────────────────────────
     describe('GET /teams/me', () => {

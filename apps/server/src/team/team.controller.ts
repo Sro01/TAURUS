@@ -2,6 +2,7 @@ import { Controller, Get, Body, Query, UseGuards, Request, Patch, Delete } from 
 import { TeamService } from './team.service';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateNameDto } from './dto/update-name.dto';
+import { SearchTeamQueryDto } from './dto/search-team.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { JwtUser } from '../auth/types';
@@ -18,6 +19,15 @@ export class TeamController {
     async findAll(@Query('search') search?: string) {
         return this.teamService.findAll(search);
     }
+
+  // 'me' 등 다른 GET 경로보다 먼저 둠
+  @Get('search')
+  @ApiOperation({ summary: '팀 이름 검색 (같은 팀·비슷한 팀·금지 사유)' })
+  @ApiResponse({ status: 200, description: '조회 성공' })
+  @ApiResponse({ status: 400, description: '검색어가 32자를 넘음' })
+  async search(@Query() query: SearchTeamQueryDto) {
+    return this.teamService.search(query.q);
+  }
 
     @Get('me')
     @UseGuards(AuthGuard('jwt'))

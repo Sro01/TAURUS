@@ -4,13 +4,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TeamResponseDto } from './dto/team-response.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { normalizeName } from '../common/utils/name';
-import { assertValidTeamName } from './team-name.policy';
+import { assertValidTeamName, teamNameProblem } from './team-name.policy';
+import { TeamSearchItem, TeamSearchResult } from './dto/search-team.dto';
 import * as bcrypt from 'bcrypt';
 
 import { JwtService } from '@nestjs/jwt';
 import { TEAM_TOKEN_EXPIRY } from '../common/constants';
 
 const TEAM_NAME_TAKEN = '이미 있는 팀 이름이에요.';
+const TEAM_SEARCH_LIMIT = 5;
+
+type TeamSearchRow = { id: string; name: string; nameKey: string };
 
 @Injectable()
 export class TeamService {
@@ -53,6 +57,41 @@ export class TeamService {
         if (nameKey === '') return null;
         return this.prisma.team.findUnique({ where: { nameKey } });
     }
+
+  // 입력한 팀 이름과 같거나 비슷한 팀 찾기 (예약 모달 팀 이름 칸)
+  // matches: 비교용 이름이 입력 키를 포함하거나, 입력 키(2글자 이상)에 포함되는 팀
+  // 정렬: 같은 팀 → 입력 키로 시작 → 나머지, 묶음 안에서는 이름 순. 최대 5개
+  async search(q: string): Promise<TeamSearchResult> {
+    const problem = q === '' ? null : teamNameProblem(q);
+    const key = normalizeName(q);
+    if (key === '') return { problem, exact: null, matches: [] };
+
+    // key는 숫자·영문·한글만이라 LIKE 특수문자가 없음. 값은 파라미터로 넘어감
+    const rows = await this.prisma.$queryRaw<TeamSearchRow[]>`
+      SELECT "id", "name", "nameKey" FROM "teams"
+      WHERE "nameKey" LIKE '%' || ${key} || '%'
+         OR (length(${key}) >= 2 AND strpos(${key}, "nameKey") > 0)
+    `;
+
+    const rank = (nameKey: string) =>
+      nameKey === key ? 0 : nameKey.startsWith(key) ? 1 : 2;
+    const sorted = rows
+      .map((row) => ({ row, rank: rank(row.nameKey) }))
+      .sort(
+        (a, b) => a.rank - b.rank || a.row.name.localeCompare(b.row.name, 'ko'),
+      );
+
+    const toItem = ({ id, name }: TeamSearchRow): TeamSearchItem => ({
+      id,
+      name,
+    });
+    const exact = sorted.find((s) => s.rank === 0)?.row;
+    return {
+      problem,
+      exact: exact ? toItem(exact) : null,
+      matches: sorted.slice(0, TEAM_SEARCH_LIMIT).map((s) => toItem(s.row)),
+    };
+  }
 
     // 팀 만들기 (등록·자동 등록 공용): 이름 검사 → 겹침 확인 → 해시 → 저장
     async create(name: string, password: string): Promise<Team> {
